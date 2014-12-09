@@ -49,7 +49,9 @@ class OplataCls
 
         $str = $password;
         foreach ($data as $k => $v) {
-            $str .= self::SIGNATURE_SEPARATOR . $v;
+            if($k != 'response_signature_string') {
+                $str .= self::SIGNATURE_SEPARATOR . $v;
+            }
         }
 
         if ($encoded) {
