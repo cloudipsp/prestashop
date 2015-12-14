@@ -9,7 +9,7 @@ class OplataCls
 
     const SIGNATURE_SEPARATOR = '|';
 
-    const URL = "https://api.oplata.com/api/checkout/redirect/";
+    const URL = "https://api.fondy.eu/api/checkout/redirect/";
 
     protected static $responseFields = array('rrn',
         'masked_card',
