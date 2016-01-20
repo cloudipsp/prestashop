@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+        <module>
+            <name>oplata</name>
+            <displayName><![CDATA[Платежи Oplata]]></displayName>
+            <version><![CDATA[0.1]]></version>
+            <description><![CDATA[Оплата через Oplata]]></description>
+            <author><![CDATA[Oplata]]></author>
+            <tab><![CDATA[Payment]]></tab>
+	<confirmUninstall>Действительно хотите удалить модуль?</confirmUninstall>
+            <is_configurable>1</is_configurable>
+            <need_instance>1</need_instance>
+	<limited_countries></limited_countries>
+        </module>
