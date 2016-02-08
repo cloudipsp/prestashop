@@ -6,8 +6,8 @@
  * Time: 9:05
  */
 
-require_once(dirname(__FILE__).'/oplata.php');
-$module = new Oplata();
+require_once(dirname(__FILE__).'/fondy.php');
+$module = new Fondy();
 
 $smarty->assign('message', $_GET['message']);
 

@@ -1,6 +1,6 @@
 <?php
 
-class OplataCls
+class FondyCls
 {
     const ORDER_APPROVED = 'approved';
     const ORDER_DECLINED = 'declined';
@@ -61,9 +61,9 @@ class OplataCls
         }
     }
 
-    public static function isPaymentValid($oplataSettings, $response)
+    public static function isPaymentValid($fondySettings, $response)
     {
-        if ($oplataSettings['merchant_id'] != $response['merchant_id']) {
+        if ($fondySettings['merchant_id'] != $response['merchant_id']) {
             return 'An error has occurred during payment. Merchant data is incorrect.';
         }
 
@@ -78,7 +78,7 @@ class OplataCls
             }
         }
 
-        if (self::getSignature($response, $oplataSettings['secret_key']) != $originalResponse['signature']) {
+        if (self::getSignature($response, $fondySettings['secret_key']) != $originalResponse['signature']) {
             return 'An error has occurred during payment. Signature is not valid.';
         }
 

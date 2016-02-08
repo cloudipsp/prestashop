@@ -26,8 +26,8 @@
 
 <p class="payment_module">
 
-    <a href="{$this_path}redirect.php?id_cart={$id}" title="{l s='Pay oplata' mod='oplata'}">
-        <img src="{$this_path}img/oplata.png" rel='oplata' width="90" height="32"/>
+    <a href="{$this_path}redirect.php?id_cart={$id}" title="{l s='Pay fondy' mod='fondy'}">
+        <img src="{$this_path}img/fondy.png" rel='fondy' width="90" height="32"/>
         {$this_description}
     </a>
 </p>

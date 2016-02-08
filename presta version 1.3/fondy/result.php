@@ -1,10 +1,10 @@
 <?php
 
-require_once(dirname(__FILE__).'/oplata.php');
-require_once(dirname(__FILE__).'/oplata.cls.php');
+require_once(dirname(__FILE__).'/fondy.php');
+require_once(dirname(__FILE__).'/fondy.cls.php');
 require_once _PS_CLASS_DIR_ . 'Mail.php';
 
-class OplataResultModuleFrontController extends Oplata
+class FondyResultModuleFrontController extends Fondy
 {
     /**
      * @var Order
@@ -35,17 +35,17 @@ class OplataResultModuleFrontController extends Oplata
         Mail::Send($id_lang, 'payment_error', $subject, $data, $to, $toName);
 
         // redirect to error with message
-        Tools::redirectLink(__PS_BASE_URI__.'modules/oplata/result-error.php?message=' . urlencode($subject));
+        Tools::redirectLink(__PS_BASE_URI__.'modules/fondy/result-error.php?message=' . urlencode($subject));
     }
 
     public function postProcess()
     {
-        list($orderId,) = explode(OplataCls::ORDER_SEPARATOR, $_POST['order_id']);
+        list($orderId,) = explode(FondyCls::ORDER_SEPARATOR, $_POST['order_id']);
         $this->_order = new Order(intval($orderId));
 
         $this->_customer = new Customer($this->_order->id_customer);
 
-        if ($_POST['order_status'] == OplataCls::ORDER_DECLINED) {
+        if ($_POST['order_status'] == FondyCls::ORDER_DECLINED) {
             $this->showError(Tools::displayError('Order declined'));
         }
 
@@ -54,7 +54,7 @@ class OplataResultModuleFrontController extends Oplata
             'secret_key' => $this->getOption('secret_key')
         );
 
-        $isPaymentValid = OplataCls::isPaymentValid($settings, $_POST);
+        $isPaymentValid = FondyCls::isPaymentValid($settings, $_POST);
         if ($isPaymentValid !== true) {
             $this->showError(Tools::displayError($isPaymentValid));
         }
@@ -72,9 +72,9 @@ class OplataResultModuleFrontController extends Oplata
         $history->addWithemail(true, "");
 
         // redirect to success
-        Tools::redirectLink(__PS_BASE_URI__.'modules/oplata/result-success.php');
+        Tools::redirectLink(__PS_BASE_URI__.'modules/fondy/result-success.php');
     }
 }
 
-$result = new OplataResultModuleFrontController();
+$result = new FondyResultModuleFrontController();
 $result->postProcess();

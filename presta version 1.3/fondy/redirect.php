@@ -1,10 +1,10 @@
 <?php
 include_once (dirname(__FILE__).'/../../config/config.inc.php');
 include_once (dirname(__FILE__).'/../../header.php');
-require_once(dirname(__FILE__).'/oplata.php');
-require_once(dirname(__FILE__).'/oplata.cls.php');
+require_once(dirname(__FILE__).'/fondy.php');
+require_once(dirname(__FILE__).'/fondy.cls.php');
 
-class OplataRedirectModuleFrontController
+class FondyRedirectModuleFrontController
 {
 	public $ssl = true;
 
@@ -24,17 +24,17 @@ class OplataRedirectModuleFrontController
 
         $currency = new Currency($cookie->id_currency);
 
-		$oplata = new Oplata();
+		$fondy = new Fondy();
 		$total = $cart->getOrderTotal();
 
-        $callback = _PS_BASE_URL_.__PS_BASE_URI__.'modules/oplata/callback.php';
-        $result = _PS_BASE_URL_.__PS_BASE_URI__.'modules/oplata/result.php';
+        $callback = _PS_BASE_URL_.__PS_BASE_URI__.'modules/fondy/callback.php';
+        $result = _PS_BASE_URL_.__PS_BASE_URI__.'modules/fondy/result.php';
 
-		$oplata->validateOrder(intval($cart->id), _PS_OS_PREPARATION_, $total, $oplata->displayName);
+		$fondy->validateOrder(intval($cart->id), _PS_OS_PREPARATION_, $total, $fondy->displayName);
 
         $fields = array(
-            'order_id' => $oplata->currentOrder . OplataCls::ORDER_SEPARATOR . time(),
-            'merchant_id' => $oplata->getOption('merchant'),
+            'order_id' => $fondy->currentOrder . FondyCls::ORDER_SEPARATOR . time(),
+            'merchant_id' => $fondy->getOption('merchant'),
             'order_desc' => 'Order description',
             'amount' => round($total * 100),
             'currency' => $currency->iso_code,
@@ -45,8 +45,8 @@ class OplataRedirectModuleFrontController
             'delayed' => 'N'
         );
 
-        $fields['signature'] = OplataCls::getSignature($fields, $oplata->getOption('secret_key'));
-        $fields['oplata_url'] = OplataCls::URL;
+        $fields['signature'] = FondyCls::getSignature($fields, $fondy->getOption('secret_key'));
+        $fields['fondy_url'] = FondyCls::URL;
 
 		$smarty->assign($fields);
 
@@ -64,5 +64,5 @@ class OplataRedirectModuleFrontController
     }
 }
 
-$redirect = new OplataRedirectModuleFrontController();
+$redirect = new FondyRedirectModuleFrontController();
 $redirect->initContent();
