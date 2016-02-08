@@ -15,6 +15,14 @@ class FondyCallbackModuleFrontController extends ModuleFrontController
      * @see FrontController::postProcess()
      */
     public function postProcess() {
+			If (empty($_POST)){
+			 $fap = json_decode(file_get_contents("php://input"));
+        $_POST=array();
+        foreach($fap as $key=>$val)
+        {
+          $_POST[$key] =  $val ;
+        }
+		}
         try {
 
             if ($_POST['order_status'] == FondyCls::ORDER_DECLINED) {
