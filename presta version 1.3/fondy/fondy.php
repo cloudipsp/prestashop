@@ -80,7 +80,7 @@ class Fondy extends PaymentModule
 
     private function _displayFondy()
     {
-        $this->_html .= '<img src="../modules/fondy/fondy.png" style="float:left; margin-right:15px;"><b>' .
+        $this->_html .= '<img src="../modules/fondy/logo.png" style="float:left; margin-right:15px;"><b>' .
             $this->l('This module allows you to accept payments by Fondy.') . '</b><br /><br />' .
             $this->l('If the client chooses this payment mode, the order will change its status into a \'Waiting for payment\' status.') .
             '<br /><br /><br />';
