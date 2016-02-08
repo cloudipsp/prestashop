@@ -1,8 +1,8 @@
 <?php
-require_once(dirname(__FILE__).'../../../oplata.php');
-require_once(dirname(__FILE__).'../../../oplata.cls.php');
+require_once(dirname(__FILE__).'../../../fondy.php');
+require_once(dirname(__FILE__).'../../../fondy.cls.php');
 
-class OplataRedirectModuleFrontController extends ModuleFrontController
+class FondyRedirectModuleFrontController extends ModuleFrontController
 {
 	public $ssl = true;
 
@@ -21,25 +21,25 @@ class OplataRedirectModuleFrontController extends ModuleFrontController
         $payCurrency = Context::getContext()->currency;
         $cart = $this->context->cart;
 
-		$oplata = new Oplata();
+		$fondy = new Fondy();
 		$total = $cart->getOrderTotal();
 
-		$oplata->validateOrder(intval($cart->id), _PS_OS_PREPARATION_, $total, $oplata->displayName);
+		$fondy->validateOrder(intval($cart->id), _PS_OS_PREPARATION_, $total, $fondy->displayName);
 
         $fields = array(
-            'order_id' => $oplata->currentOrder . OplataCls::ORDER_SEPARATOR . time(),
-            'merchant_id' => $oplata->getOption('merchant'),
+            'order_id' => $fondy->currentOrder . FondyCls::ORDER_SEPARATOR . time(),
+            'merchant_id' => $fondy->getOption('merchant'),
             'order_desc' => 'Order description',
             'amount' => round($total * 100),
             'currency' => $payCurrency->iso_code,
-            'server_callback_url' => $link->getModuleLink('oplata', 'callback'),
-            'response_url' => $link->getModuleLink('oplata', 'result'),
+            'server_callback_url' => $link->getModuleLink('fondy', 'callback'),
+            'response_url' => $link->getModuleLink('fondy', 'result'),
             'lang' => strtoupper($language),
             'sender_email' => $this->context->customer->email
         );
 
-        $fields['signature'] = OplataCls::getSignature($fields, $oplata->getOption('secret_key'));
-        $fields['oplata_url'] = OplataCls::URL;
+        $fields['signature'] = FondyCls::getSignature($fields, $fondy->getOption('secret_key'));
+        $fields['fondy_url'] = FondyCls::URL;
 
 		$this->context->smarty->assign($fields);
 

@@ -26,8 +26,8 @@
 
 <p class="payment_module">
 
-    <a href="{$link->getModuleLink('oplata', 'redirect', ['id_cart' => {$id}])}" title="{l s='Pay oplata' mod='oplata'}">
-        <img src="{$this_path}img/oplata.png" rel='oplata' width="90" height="32"/>
+    <a href="{$link->getModuleLink('fondy', 'redirect', ['id_cart' => {$id}])}" title="{l s='Pay fondy' mod='fondy'}">
+        <img src="{$this_path}img/logo.png" rel='fondy' width="90" height="32"/>
         {$this_description}
     </a>
 </p>

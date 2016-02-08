@@ -1,23 +1,23 @@
 <?php
 
-class Oplata extends PaymentModule
+class Fondy extends PaymentModule
 {
     private $settingsList = array(
-        'OPLATA_MERCHANT',
-        'OPLATA_SECRET_KEY',
-        'OPLATA_BACK_REF'
+        'FONDY_MERCHANT',
+        'FONDY_SECRET_KEY',
+        'FONDY_BACK_REF'
     );
 
     public function __construct()
     {
-        $this->name = 'oplata';
+        $this->name = 'fondy';
         $this->tab = 'payments_gateways';
         $this->version = '1.0';
-        $this->author = 'Oplata';
+        $this->author = 'Fondy';
 
         parent::__construct();
-        $this->displayName = $this->l('Платежи Oplata');
-        $this->description = $this->l('Оплата через Oplata');
+        $this->displayName = $this->l('Платежи Fondy');
+        $this->description = $this->l('Оплата через Fondy');
         $this->confirmUninstall = $this->l('Действительно хотите удалить модуль?');
     }
 
@@ -44,7 +44,7 @@ class Oplata extends PaymentModule
 
     public function getOption($name)
     {
-        return Configuration::get("OPLATA_" . strtoupper($name));
+        return Configuration::get("FONDY_" . strtoupper($name));
     }
 
     private function _displayForm()
@@ -54,7 +54,7 @@ class Oplata extends PaymentModule
 			<fieldset>
 			<legend><img src="../img/admin/contact.gif" />' . $this->l('Contact details') . '</legend>
 				<table border="0" width="500" cellpadding="0" cellspacing="0" id="form">
-					<tr><td colspan="2">' . $this->l('Please specify the Oplata account details for customers') . '.<br /><br /></td></tr>
+					<tr><td colspan="2">' . $this->l('Please specify the Fondy account details for customers') . '.<br /><br /></td></tr>
 
 					<tr>
 						<td width="130" style="height: 35px;">' . $this->l('Merchant') . '</td>
@@ -70,10 +70,10 @@ class Oplata extends PaymentModule
 		</form>';
     }
 
-    private function _displayOplata()
+    private function _displayFondy()
     {
-        $this->_html .= '<img src="../modules/oplata/oplata.png" style="float:left; margin-right:15px;"><b>' .
-            $this->l('This module allows you to accept payments by Oplata.') . '</b><br /><br />' .
+        $this->_html .= '<img src="../modules/fondy/logo.png" style="float:left; margin-right:15px;"><b>' .
+            $this->l('This module allows you to accept payments by Fondy.') . '</b><br /><br />' .
             $this->l('If the client chooses this payment mode, the order will change its status into a \'Waiting for payment\' status.') .
             '<br /><br /><br />';
     }
@@ -94,7 +94,7 @@ class Oplata extends PaymentModule
         } else {
             $this->_html .= '<br />';
         }
-        $this->_displayOplata();
+        $this->_displayFondy();
         $this->_displayForm();
         return $this->_html;
     }
@@ -110,8 +110,8 @@ class Oplata extends PaymentModule
     private function _postProcess()
     {
         if (Tools::isSubmit('btnSubmit')) {
-            Configuration::updateValue('OPLATA_MERCHANT', Tools::getValue('merchant'));
-            Configuration::updateValue('OPLATA_SECRET_KEY', Tools::getValue('secret_key'));
+            Configuration::updateValue('FONDY_MERCHANT', Tools::getValue('merchant'));
+            Configuration::updateValue('FONDY_SECRET_KEY', Tools::getValue('secret_key'));
         }
         $this->_html .= '<div class="conf confirm"><img src="../img/admin/ok.gif" alt="' . $this->l('ok') . '" /> ' . $this->l('Settings updated') . '</div>';
     }
@@ -128,10 +128,10 @@ class Oplata extends PaymentModule
             'this_path' => $this->_path,
             'id' => (int)$params['cart']->id,
             'this_path_ssl' => Tools::getShopDomainSsl(true, true) . __PS_BASE_URI__ . 'modules/' . $this->name . '/',
-            'this_description' => 'Оплата через систему Oplata'
+            'this_description' => 'Оплата через систему Fondy'
         ));
 
-        return $this->display(__FILE__, 'oplata.tpl');
+        return $this->display(__FILE__, 'fondy.tpl');
     }
 
     private function _checkCurrency($cart)

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
         <module>
-            <name>oplata</name>
-            <displayName><![CDATA[Платежи Oplata]]></displayName>
+            <name>Fondy</name>
+            <displayName><![CDATA[Платежи Fondy]]></displayName>
             <version><![CDATA[0.1]]></version>
-            <description><![CDATA[Оплата через Oplata]]></description>
-            <author><![CDATA[Oplata]]></author>
+            <description><![CDATA[Оплата через Fondy]]></description>
+            <author><![CDATA[Fondy]]></author>
             <tab><![CDATA[payments_gateways]]></tab>
 	<confirmUninstall>Действительно хотите удалить модуль?</confirmUninstall>
             <is_configurable>1</is_configurable>

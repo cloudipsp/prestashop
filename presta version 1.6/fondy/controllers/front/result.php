@@ -1,26 +1,26 @@
 <?php
 
-require_once(dirname(__FILE__).'../../../oplata.php');
-require_once(dirname(__FILE__).'../../../oplata.cls.php');
+require_once(dirname(__FILE__).'../../../fondy.php');
+require_once(dirname(__FILE__).'../../../fondy.cls.php');
 
-class OplataResultModuleFrontController extends ModuleFrontController {
+class FondyResultModuleFrontController extends ModuleFrontController {
     /**
      * @see FrontController::postProcess()
      */
     public function postProcess() {
 
-        $oplata = new Oplata();
+        $fondy = new Fondy();
 
-        if ($_POST['order_status'] == OplataCls::ORDER_DECLINED) {
+        if ($_POST['order_status'] == FondyCls::ORDER_DECLINED) {
             $this->errors[] = Tools::displayError('Order declined');
         }
 
         $settings = array(
-            'merchant_id' => $oplata->getOption('merchant'),
-            'secret_key' => $oplata->getOption('secret_key')
+            'merchant_id' => $fondy->getOption('merchant'),
+            'secret_key' => $fondy->getOption('secret_key')
         );
 
-        $isPaymentValid = OplataCls::isPaymentValid($settings, $_POST);
+        $isPaymentValid = FondyCls::isPaymentValid($settings, $_POST);
         if ($isPaymentValid !== true) {
             $this->errors[] = Tools::displayError($isPaymentValid);
         }
@@ -38,7 +38,7 @@ class OplataResultModuleFrontController extends ModuleFrontController {
 
         if (empty($this->errors)) {
 
-            list($orderId,) = explode(OplataCls::ORDER_SEPARATOR, $_POST['order_id']);
+            list($orderId,) = explode(FondyCls::ORDER_SEPARATOR, $_POST['order_id']);
             $history = new OrderHistory();
             $history->id_order = $orderId;
             $history->changeIdOrderState((int)Configuration::get('PS_OS_PAYMENT'), $orderId);
