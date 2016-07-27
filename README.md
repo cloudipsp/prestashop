@@ -1,6 +1,7 @@
 Module for Prestashop 1.3 and 1.6
 
 For install u need:
+
 1. Copy folder ‘fondy’ to {site root directory}/modules
 2. Login to admin interface
 3. Navigate to section "Modules"
