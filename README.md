@@ -1,11 +1,11 @@
-Модуль для Prestashop 1.3 и 1.6
+Module for Prestashop 1.3 and 1.6
 
-#Для установки необходимо : 
-1. Разместить папку fondy в каталог {корень сайта}/modules
-2. Зайти на админ-страницу
-3. Перейти в раздел "Модули" ( "Modules" )
-4. Выбрать раздел "Платежи и шлюзы" ( "Payments & Gateways" )
-5. Из выпавшего списка выбрать "Платежи Fondy" и нажать кнопку "Установить" ("Install")
-6. Нажать ссылку Настроить
-7. Ввести merchant и secret и сохранить данные
-8. После настройки включить
+For install u need:
+1. Copy folder ‘fondy’ to {site root directory}/modules
+2. Login to admin interface
+3. Navigate to section "Modules"
+4. Select section "Payments & Gateways"
+5. Select from list "Payments Fondy" and press button "Install"
+6. Press link "Настроить" ("Setup")
+7. Enter merchant, secret and save data
+8. After setup -  turn on
