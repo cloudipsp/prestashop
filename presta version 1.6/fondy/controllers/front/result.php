@@ -14,7 +14,11 @@ class FondyResultModuleFrontController extends ModuleFrontController {
         if ($_POST['order_status'] == FondyCls::ORDER_DECLINED) {
             $this->errors[] = Tools::displayError('Order declined');
         }
-
+		if ($_POST['order_status'] == 'processing') {
+            $this->errors[] = Tools::displayError('Payment proccesing');
+		}
+		
+		
         $settings = array(
             'merchant_id' => $fondy->getOption('merchant'),
             'secret_key' => $fondy->getOption('secret_key')
