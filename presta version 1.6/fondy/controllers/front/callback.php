@@ -24,11 +24,18 @@ class FondyCallbackModuleFrontController extends ModuleFrontController
         }
 		}
         try {
-
-            if ($_POST['order_status'] == FondyCls::ORDER_DECLINED) {
-                exit('Order declined');
+			
+			if ($_POST['order_status'] == FondyCls::ORDER_DECLINED) {
+				list($orderId,) = explode(FondyCls::ORDER_SEPARATOR, $_POST['order_id']);
+				$history = new OrderHistory();
+				$history->id_order = $orderId;
+				$history->changeIdOrderState((int)Configuration::get('PS_OS_ERROR'), $orderId);
+				$history->addWithemail(true, array(
+                'order_name' => $orderId
+				));
+				exit('Order declined');
             }
-
+			
             $fondy = new Fondy();
             $settings = array(
                 'merchant_id' => $fondy->getOption('merchant'),
