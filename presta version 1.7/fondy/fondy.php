@@ -25,7 +25,6 @@ class Fondy extends PaymentModule
     {
         return parent::install()
             && $this->registerHook('paymentOptions')
-            && $this->registerHook('paymentReturn')
         ;
     }
 
@@ -144,24 +143,6 @@ class Fondy extends PaymentModule
                 ;
 
         return [$newOption];
-    }
-	public function hookPaymentReturn($params)
-    {
-		print_r (1);die;
-        // Payement return for PS 1.7
-        if ($this->active == false) {
-            return;
-        }
-        $order = $params['order'];
-        
-        $this->smarty->assign(array(
-            'id_order' => $order->id,
-            'reference' => $order->reference,
-            'params' => $params,
-            'total_to_pay' => Tools::displayPrice($order->total_paid, null, false),
-            'shop_name' => $this->context->shop->name,
-        ));
-        return $this->fetch(__FILE__, 'fondy.tpl');
     }
     private function _checkCurrency($cart)
     {
