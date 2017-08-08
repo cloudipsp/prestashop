@@ -16,7 +16,7 @@ class FondyCallbackModuleFrontController extends ModuleFrontController
      */
     public function postProcess() {
 		if(empty($_POST)){
-			callback = json_decode(file_get_contents("php://input"));
+			$callback = json_decode(file_get_contents("php://input"));
 			$_POST = array();
 			foreach($callback as $key=>$val){
 			  $_POST[$key] =  $val ;
