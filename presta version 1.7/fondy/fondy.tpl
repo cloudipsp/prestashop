@@ -24,7 +24,7 @@
 *  International Registered Trademark & Property of PrestaShop SA
 *}
 
-<p class="payment_module">{$debug}
+<p class="payment_module">
         <img src="{$this_path nofilter}img/logo.png" rel='fondy' width="90" height="32"/><br/>
         {$this_description nofilter}
     </a>

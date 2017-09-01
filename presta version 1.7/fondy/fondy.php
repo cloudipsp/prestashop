@@ -7,7 +7,8 @@ class Fondy extends PaymentModule
         'FONDY_SECRET_KEY',
         'FONDY_BACK_REF'
     );
-
+	private $_html = '';
+    private $_postErrors = array();
     public function __construct()
     {
         $this->name = 'fondy';
@@ -87,7 +88,9 @@ class Fondy extends PaymentModule
                 $this->_postProcess();
             } else {
                 foreach ($this->_postErrors AS $err) {
-                    $this->_html .= '<div class="alert error">' . $err . '</div>';
+                    $this->_html .= '<div class="bootstrap">
+										<div class="module_error alert alert-danger">
+										<button type="button" class="close" data-dismiss="alert">×</button>' . $err . '</div></div>';
                 }
             }
         } else {
@@ -102,7 +105,10 @@ class Fondy extends PaymentModule
     private function _postValidation()
     {
         if (Tools::isSubmit('btnSubmit')) {
-            /*$this->_postErrors[] = $this->l('Account details are required.');*/
+            if (empty($_POST['merchant']))
+				$this->_postErrors[] = $this->l('Merchant ID is required.');
+			if (empty($_POST['secret_key']))
+				$this->_postErrors[] = $this->l('Secret key is required.');
         }
     }
 
@@ -112,11 +118,13 @@ class Fondy extends PaymentModule
             Configuration::updateValue('FONDY_MERCHANT', Tools::getValue('merchant'));
             Configuration::updateValue('FONDY_SECRET_KEY', Tools::getValue('secret_key'));
         }
-        $this->_html .= '
-		<div class="alert alert-success">
-			<button type="button" class="close" data-dismiss="alert">×</button>
-			' . $this->l('Settings updated') . '
-		</div>';
+        $updated = $this->l('Settings Updated');
+        $this->_html .= '<div class="bootstrap">
+        <div class="module_confirmation conf confirm alert alert-success">
+            <button type="button" class="close" data-dismiss="alert">×</button>
+            '.$updated.'
+        </div>
+        </div>';
     }
 
     # Display
@@ -134,7 +142,7 @@ class Fondy extends PaymentModule
             'this_path_ssl' => Tools::getShopDomainSsl(true, true) . __PS_BASE_URI__ . 'modules/' . $this->name . '/',
             'this_description' => $this->l('Оплата через систему Fondy')
         ));
-		//print_r( $this->smarty->assign);
+		
         $newOption = new PaymentOption();
         $newOption->setModuleName($this->name)
                 ->setCallToActionText($this->l('Pay by Fondy'))
