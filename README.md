@@ -1,7 +1,7 @@
-Module for Prestashop 1.3 and 1.6
+# Module for Prestashop 1.3, 1.5, 1.6, 1.7
 
-For install u need:
-
+### Installation:
+-----
 1. Copy folder ‘fondy’ to {site root directory}/modules
 2. Login to admin interface
 3. Navigate to section "Modules"
@@ -10,6 +10,7 @@ For install u need:
 6. Press link "Настроить" ("Setup")
 7. Enter merchant, secret and save data
 8. After setup -  turn on
+
 
 ![Скриншот][1]
 ----
