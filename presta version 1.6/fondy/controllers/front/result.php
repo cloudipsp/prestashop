@@ -14,6 +14,9 @@ class FondyResultModuleFrontController extends ModuleFrontController {
         if ($_POST['order_status'] == FondyCls::ORDER_DECLINED) {
             $this->errors[] = Tools::displayError('Order declined');
         }
+        if ($_POST['order_status'] == 'expired') {
+            $this->errors[] = Tools::displayError('Order expired');
+        }
 		if ($_POST['order_status'] == 'processing') {
             $this->errors[] = Tools::displayError('Payment proccesing');
 		}

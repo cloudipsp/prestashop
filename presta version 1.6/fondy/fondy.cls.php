@@ -14,7 +14,7 @@ class FondyCls
 
     public static function getSignature($data, $password, $encoded = true)
     {
-        $data = array_filter($data, function($var) {
+        $data = array_filter($data, function ($var) {
             return $var !== '' && $var !== null;
         });
         ksort($data);
@@ -42,18 +42,18 @@ class FondyCls
         }
 
         $responseSignature = $response['signature'];
-		if (isset($response['response_signature_string'])){
-        unset($response['response_signature_string']);
-		}
-		if (isset($response['signature'])){
-		unset($response['signature']);
-		}
-		if (self::getSignature($response, $fondySettings['secret_key']) != $responseSignature) {
+        if (isset($response['response_signature_string'])) {
+            unset($response['response_signature_string']);
+        }
+        if (isset($response['signature'])) {
+            unset($response['signature']);
+        }
+        if (self::getSignature($response, $fondySettings['secret_key']) != $responseSignature) {
             return 'An error has occurred during payment. Signature is not valid.';
         }
 
         if ($response['order_status'] != self::ORDER_APPROVED) {
-            return false;
+            return 'An error has occurred during payment. Order is expired.';
         }
 
         return true;

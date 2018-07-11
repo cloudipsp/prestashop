@@ -1,7 +1,7 @@
 <?php
 
-require_once(dirname(__FILE__).'../../../fondy.php');
-require_once(dirname(__FILE__).'../../../fondy.cls.php');
+require_once(dirname(__FILE__) . '../../../fondy.php');
+require_once(dirname(__FILE__) . '../../../fondy.cls.php');
 
 class FondyCallbackModuleFrontController extends ModuleFrontController
 {
@@ -14,28 +14,28 @@ class FondyCallbackModuleFrontController extends ModuleFrontController
     /**
      * @see FrontController::postProcess()
      */
-    public function postProcess() {
-			If (empty($_POST)){
-			 $fap = json_decode(file_get_contents("php://input"));
-        $_POST=array();
-        foreach($fap as $key=>$val)
-        {
-          $_POST[$key] =  $val ;
-        }
-		}
-        try {
-			
-			if ($_POST['order_status'] == FondyCls::ORDER_DECLINED) {
-				list($orderId,) = explode(FondyCls::ORDER_SEPARATOR, $_POST['order_id']);
-				$history = new OrderHistory();
-				$history->id_order = $orderId;
-				$history->changeIdOrderState((int)Configuration::get('PS_OS_ERROR'), $orderId);
-				$history->addWithemail(true, array(
-                'order_name' => $orderId
-				));
-				exit('Order declined');
+    public function postProcess()
+    {
+        if (empty($_POST)) {
+            $fap = json_decode(file_get_contents("php://input"));
+            $_POST = array();
+            foreach ($fap as $key => $val) {
+                $_POST[$key] = $val;
             }
-			
+        }
+        try {
+
+            if ($_POST['order_status'] == FondyCls::ORDER_DECLINED) {
+                list($orderId,) = explode(FondyCls::ORDER_SEPARATOR, $_POST['order_id']);
+                $history = new OrderHistory();
+                $history->id_order = $orderId;
+                $history->changeIdOrderState((int)Configuration::get('PS_OS_ERROR'), $orderId);
+                $history->addWithemail(true, array(
+                    'order_name' => $orderId
+                ));
+                exit('Order declined');
+            }
+
             $fondy = new Fondy();
             $settings = array(
                 'merchant_id' => $fondy->getOption('merchant'),
