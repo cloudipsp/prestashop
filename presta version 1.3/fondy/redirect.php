@@ -20,7 +20,7 @@ class FondyRedirectModuleFrontController
         $customer = new Customer((int)$cart->id_customer);
 
         $language = Language::getIsoById(intval($cookie->id_lang));
-        $language = (!in_array($language, array('ua', 'en', 'ru'))) ? 'ru' : $language;
+        $language = (!in_array($language, array('ua', 'en', 'ru', 'lv', 'fr'))) ? '' : $language;
 
         $currency = new Currency($cookie->id_currency);
 
@@ -35,16 +35,16 @@ class FondyRedirectModuleFrontController
         $fields = array(
             'order_id' => $fondy->currentOrder . FondyCls::ORDER_SEPARATOR . time(),
             'merchant_id' => $fondy->getOption('merchant'),
-            'order_desc' => 'Order description',
+            'order_desc' => $fondy->currentOrder,
             'amount' => round($total * 100),
             'currency' => $currency->iso_code,
             'server_callback_url' => $callback,
             'response_url' => $result,
-            'lang' => strtoupper($language),
             'sender_email' => $customer->email,
             'delayed' => 'N'
         );
-
+		if ($language !== '')
+            $fields['lang'] = strtolower($language);
         $fields['signature'] = FondyCls::getSignature($fields, $fondy->getOption('secret_key'));
         $fields['fondy_url'] = FondyCls::URL;
 

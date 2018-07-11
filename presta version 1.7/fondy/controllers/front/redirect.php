@@ -17,7 +17,7 @@ class FondyRedirectModuleFrontController extends ModuleFrontController
         global $cookie, $link;
 
         $language = Language::getIsoById(intval($cookie->id_lang));
-        $language = (!in_array($language, array('ua', 'en', 'ru'))) ? 'ru' : $language;
+        $language = (!in_array($language, array('ua', 'en', 'ru', 'lv', 'fr'))) ? '' : $language;
 		
         $payCurrency = Context::getContext()->currency;
         $cart = $this->context->cart;
@@ -34,11 +34,11 @@ class FondyRedirectModuleFrontController extends ModuleFrontController
             'amount' => round($total * 100),
             'currency' => $payCurrency->iso_code,
             'server_callback_url' => $link->getModuleLink('fondy', 'callback'),
-            'response_url' => $link->getModuleLink('fondy', 'result'),
-            'lang' => strtoupper($language),
+            'response_url' => $link->getModuleLink('fondy', 'result'),          
             'sender_email' => $this->context->customer->email
         );
-		
+		if ($language !== '')
+            $fields['lang'] = strtolower($language);
         $fields['signature'] = FondyCls::getSignature($fields, $fondy->getOption('secret_key'));
         $fields['fondy_url'] = FondyCls::URL;
 
