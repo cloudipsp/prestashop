@@ -128,7 +128,7 @@ class Fondy extends PaymentModule
             'this_path' => $this->_path,
             'id' => (int)$params['cart']->id,
             'this_path_ssl' => Tools::getShopDomainSsl(true, true) . __PS_BASE_URI__ . 'modules/' . $this->name . '/',
-            'this_description' => 'Оплата через систему Fondy'
+            'this_description' => $this->l('Pay via Fondy')
         ));
 
         return $this->display(__FILE__, 'fondy.tpl');
