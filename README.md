@@ -10,3 +10,8 @@ For install u need:
 6. Press link "Настроить" ("Setup")
 7. Enter merchant, secret and save data
 8. After setup -  turn on
+
+![Скриншот][1]
+----
+
+[1]: https://raw.githubusercontent.com/cloudipsp/prestashop/master/s.png
