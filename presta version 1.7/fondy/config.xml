@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
         <module>
             <name>Fondy</name>
-            <displayName><![CDATA[Платежи Fondy]]></displayName>
+            <displayName><![CDATA[Fondy Payments]]></displayName>
             <version><![CDATA[0.1]]></version>
-            <description><![CDATA[Оплата через Fondy]]></description>
+            <description><![CDATA[Fondy is a payment platform whose main function is to provide internet acquiring. Payment gateway supports EUR, USD, PLN, GBP, UAH, RUB and +100 other currencies.]]></description>
             <author><![CDATA[Fondy]]></author>
             <tab><![CDATA[payments_gateways]]></tab>
-	<confirmUninstall>Действительно хотите удалить модуль?</confirmUninstall>
+	<confirmUninstall>Are you want to remove the module?</confirmUninstall>
             <is_configurable>1</is_configurable>
             <need_instance>1</need_instance>
 	<limited_countries></limited_countries>

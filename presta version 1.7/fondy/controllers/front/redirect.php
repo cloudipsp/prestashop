@@ -30,7 +30,7 @@ class FondyRedirectModuleFrontController extends ModuleFrontController
         $fields = array(
             'order_id' => $fondy->currentOrder . FondyCls::ORDER_SEPARATOR . time(),
             'merchant_id' => $fondy->getOption('merchant'),
-            'order_desc' => $this->l('Оплата заказа №') . $fondy->currentOrder,
+            'order_desc' => $this->l('Order pay №') . $fondy->currentOrder,
             'amount' => round($total * 100),
             'currency' => $payCurrency->iso_code,
             'server_callback_url' => $link->getModuleLink('fondy', 'callback'),

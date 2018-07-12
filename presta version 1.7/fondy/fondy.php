@@ -17,9 +17,9 @@ class Fondy extends PaymentModule
         $this->author = 'Fondy';
 
         parent::__construct();
-        $this->displayName = $this->l('Платежи Fondy');
-        $this->description = $this->l('Оплата через Fondy');
-        $this->confirmUninstall = $this->l('Действительно хотите удалить модуль?');
+        $this->displayName = $this->l('Fondy Payments');
+        $this->description = $this->l('Fondy is a payment platform whose main function is to provide internet acquiring. Payment gateway supports EUR, USD, PLN, GBP, UAH, RUB and +100 other currencies.');
+        $this->confirmUninstall = $this->l('Are you want to remove the module?');
     }
 
     public function install()
@@ -57,7 +57,7 @@ class Fondy extends PaymentModule
 					<tr><td colspan="2">' . $this->l('Please specify the Fondy account details for customers') . '.<br /><br /></td></tr>
 
 					<tr>
-						<td width="130" style="height: 35px;">' . $this->l('Merchant') . '</td>
+						<td width="130" style="height: 35px;">' . $this->l('Merchant ID') . '</td>
 						<td><input type="text" name="merchant" value="' . $this->getOption("merchant") . '" style="width: 300px;" /></td>
 					</tr>
 					<tr>
@@ -140,12 +140,12 @@ class Fondy extends PaymentModule
             'this_path' => $this->_path,
             'id' => (int)$params['cart']->id,
             'this_path_ssl' => Tools::getShopDomainSsl(true, true) . __PS_BASE_URI__ . 'modules/' . $this->name . '/',
-            'this_description' => $this->l('Оплата через систему Fondy')
+            'this_description' => $this->l('Pay via payment system Fondy')
         ));
 		
         $newOption = new PaymentOption();
         $newOption->setModuleName($this->name)
-                ->setCallToActionText($this->l('Pay by Fondy'))
+                ->setCallToActionText($this->l('Pay via Fondy'))
                 ->setAction($this->context->link->getModuleLink($this->name, 'redirect', ['id_cart' => (int)$params['cart']->id], true))
 				->setAdditionalInformation($this->context->smarty->fetch('module:fondy/fondy.tpl'))
                 ;
