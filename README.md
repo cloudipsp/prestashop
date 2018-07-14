@@ -15,9 +15,9 @@
 ![Скриншот][1]
 ----
 
-[1]: https://raw.githubusercontent.com/cloudipsp/prestashop/master/s.png
+[1]: https://raw.githubusercontent.com/cloudipsp/prestashop/bank_wire/s.png
 
 ![Скриншот][2]
 ----
 
-[2]: https://raw.githubusercontent.com/cloudipsp/prestashop/master/s2.png
+[2]: https://raw.githubusercontent.com/cloudipsp/prestashop/bank_wire/s2.png
