@@ -1,32 +1,24 @@
 <?php
 
-if (is_file(dirname(__FILE__).'/../../classes/PaymentModule.php')) {
-    include_once dirname(__FILE__).'/../../classes/PaymentModule.php';
-}
-
-if (!class_exists('PaymentModule')) {
-    include_once dirname(__FILE__).'/../classes/PaymentModule.php';
-}
-
-class Fondy extends PaymentModule
+class fondy_banking extends PaymentModule
 {
     private $settingsList = array(
-        'FONDY_MERCHANT',
-        'FONDY_SECRET_KEY',
-        'FONDY_BACK_REF'
+        'FONDY_BANKING_MERCHANT',
+        'FONDY_BANKING_SECRET_KEY',
+        'FONDY_BANKING_BACK_REF'
     );
 
     public function __construct()
     {
-        $this->name = 'fondy';
-        $this->tab = 'Payment';
-        $this->version = '1.0';
+        $this->name = 'fondy_banking';
+        $this->tab = 'payments_gateways';
+        $this->version = '1.0.1';
         $this->author = 'Fondy';
 
         parent::__construct();
-        $this->displayName = $this->l('Платежи Fondy');
-        $this->description = $this->l('Оплата через Fondy');
-        $this->confirmUninstall = $this->l('Действительно хотите удалить модуль?');
+        $this->displayName = $this->l('Fondy bank wire payments');
+        $this->description = $this->l('Payment gateway supports EUR, USD, PLN, GBP, UAH, RUB and +100 other currencies.');
+        $this->confirmUninstall = $this->l('Are you want to remove the module?');
     }
 
     public function install()
@@ -52,7 +44,7 @@ class Fondy extends PaymentModule
 
     public function getOption($name)
     {
-        return Configuration::get("FONDY_" . strtoupper($name));
+        return Configuration::get("FONDY_BANKING_" . strtoupper($name));
     }
 
     private function _displayForm()
@@ -80,7 +72,7 @@ class Fondy extends PaymentModule
 
     private function _displayFondy()
     {
-        $this->_html .= '<img src="../modules/fondy/logo.png" style="float:left; margin-right:15px;"><b>' .
+        $this->_html .= '<img src="../modules/fondy_banking/logo.png" style="float:left; margin-right:15px;"><b>' .
             $this->l('This module allows you to accept payments by Fondy.') . '</b><br /><br />' .
             $this->l('If the client chooses this payment mode, the order will change its status into a \'Waiting for payment\' status.') .
             '<br /><br /><br />';
@@ -118,8 +110,8 @@ class Fondy extends PaymentModule
     private function _postProcess()
     {
         if (Tools::isSubmit('btnSubmit')) {
-            Configuration::updateValue('FONDY_MERCHANT', Tools::getValue('merchant'));
-            Configuration::updateValue('FONDY_SECRET_KEY', Tools::getValue('secret_key'));
+            Configuration::updateValue('FONDY_BANKING_MERCHANT', Tools::getValue('merchant'));
+            Configuration::updateValue('FONDY_BANKING_SECRET_KEY', Tools::getValue('secret_key'));
         }
         $this->_html .= '<div class="conf confirm"><img src="../img/admin/ok.gif" alt="' . $this->l('ok') . '" /> ' . $this->l('Settings updated') . '</div>';
     }
@@ -135,11 +127,11 @@ class Fondy extends PaymentModule
         $smarty->assign(array(
             'this_path' => $this->_path,
             'id' => (int)$params['cart']->id,
-            #'this_path_ssl' => Tools::getShopDomainSsl(true, true) . __PS_BASE_URI__ . 'modules/' . $this->name . '/',
-            'this_description' => 'Оплата через систему Fondy'
+            'this_path_ssl' => Tools::getShopDomainSsl(true, true) . __PS_BASE_URI__ . 'modules/' . $this->name . '/',
+            'this_description' => $this->l('Bank wire payment.')
         ));
 
-        return $this->display(__FILE__, 'fondy.tpl');
+        return $this->display(__FILE__, 'fondy_banking.tpl');
     }
 
     private function _checkCurrency($cart)
