@@ -14,6 +14,7 @@ class fondy_banking extends PaymentModule
         $this->tab = 'payments_gateways';
         $this->version = '1.0.1';
         $this->author = 'Fondy';
+		$this->_postErrors = [];
 
         parent::__construct();
         $this->displayName = $this->l('Fondy bank wire payments');
