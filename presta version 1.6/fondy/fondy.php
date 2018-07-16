@@ -14,6 +14,7 @@ class Fondy extends PaymentModule
         $this->tab = 'payments_gateways';
         $this->version = '1.0';
         $this->author = 'Fondy';
+		$this->_postErrors = [];
 
         parent::__construct();
         $this->displayName = $this->l('Платежи Fondy');
