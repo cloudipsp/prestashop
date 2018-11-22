@@ -124,8 +124,7 @@ class Fondy extends PaymentModule
         if (!$this->active) return;
         if (!$this->_checkCurrency($params['cart'])) return;
 
-        global $smarty;
-        $smarty->assign(array(
+        $this->context->smarty->assign(array(
             'this_path' => $this->_path,
             'id' => (int)$params['cart']->id,
             'this_path_ssl' => Tools::getShopDomainSsl(true, true) . __PS_BASE_URI__ . 'modules/' . $this->name . '/',
