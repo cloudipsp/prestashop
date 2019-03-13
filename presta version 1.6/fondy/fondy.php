@@ -5,6 +5,7 @@ class Fondy extends PaymentModule
     private $settingsList = array(
         'FONDY_MERCHANT',
         'FONDY_SECRET_KEY',
+        'FONDY_FORM_METHOD',
         'FONDY_BACK_REF'
     );
 
@@ -14,7 +15,7 @@ class Fondy extends PaymentModule
         $this->tab = 'payments_gateways';
         $this->version = '1.0';
         $this->author = 'Fondy';
-		$this->_postErrors = [];
+        $this->_postErrors = [];
 
         parent::__construct();
         $this->displayName = $this->l('Платежи Fondy');
@@ -50,6 +51,9 @@ class Fondy extends PaymentModule
 
     private function _displayForm()
     {
+        $checked = '';
+        if ($this->getOption("form_method"))
+            $checked = 'checked';
         $this->_html .=
             '<form action="' . Tools::htmlentitiesUTF8($_SERVER['REQUEST_URI']) . '" method="post">
 			<fieldset>
@@ -65,7 +69,17 @@ class Fondy extends PaymentModule
 						<td width="130" style="height: 35px;">' . $this->l('Secret key') . '</td>
 						<td><input type="text" name="secret_key" value="' . $this->getOption("secret_key") . '" style="width: 300px;" /></td>
 					</tr>
-					<tr><td colspan="2" align="center"><input class="button" name="btnSubmit" value="' . $this->l('Update settings') . '" type="submit" /></td></tr>
+					<tr>
+						<td width="130" style="height: 35px;">' . $this->l('Form method') . '</td>
+						<td>
+						    <input type="checkbox" ' . $checked . ' name="form_method" />
+						</td>
+					</tr>
+					<tr>
+					    <td colspan="2">
+					        <input class="button" name="btnSubmit" value="' . $this->l('Update settings') . '" type="submit" />
+					    </td>
+					</tr>
 				</table>
 			</fieldset>
 		</form>';
@@ -113,6 +127,7 @@ class Fondy extends PaymentModule
         if (Tools::isSubmit('btnSubmit')) {
             Configuration::updateValue('FONDY_MERCHANT', Tools::getValue('merchant'));
             Configuration::updateValue('FONDY_SECRET_KEY', Tools::getValue('secret_key'));
+            Configuration::updateValue('FONDY_FORM_METHOD', Tools::getIsset('form_method'));
         }
         $this->_html .= '<div class="conf confirm"><img src="../img/admin/ok.gif" alt="' . $this->l('ok') . '" /> ' . $this->l('Settings updated') . '</div>';
     }

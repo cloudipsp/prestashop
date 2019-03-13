@@ -40,15 +40,23 @@ class FondyRedirectModuleFrontController extends ModuleFrontController
             $fields['lang'] = strtolower($language);
 
         $fields['signature'] = FondyCls::getSignature($fields, $fondy->getOption('secret_key'));
-        $checkoutUrl = $this->generateFondyUrl($fields);
-        if($checkoutUrl['result']) {
-            Tools::redirect($checkoutUrl['url']);
-        } else{
-            die($checkoutUrl['message']);
+
+        if (!$fondy->getOption('form_method')) {
+            $checkoutUrl = $this->generateFondyUrl($fields);
+            if ($checkoutUrl['result']) {
+                Tools::redirect($checkoutUrl['url']);
+            } else {
+                die($checkoutUrl['message']);
+            }
+        } else {
+            $fields['fondy_url'] = FondyCls::URL;
+            $this->context->smarty->assign($fields);
+            $this->setTemplate('redirect.tpl');
         }
     }
 
-    public function generateFondyUrl($payment_oplata_args) {
+    public function generateFondyUrl($payment_oplata_args)
+    {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, 'https://api.fondy.eu/api/checkout/url/');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
