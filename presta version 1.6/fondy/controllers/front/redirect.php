@@ -36,6 +36,15 @@ class FondyRedirectModuleFrontController extends ModuleFrontController
             'response_url' => $link->getModuleLink('fondy', 'result'),
             'sender_email' => $this->context->customer->email ? $this->context->customer->email : ''
         );
+        if($this->context->customer and !$fondy->getOption('form_method')) {
+            $fields['merchant_data'] = json_encode(
+                array(
+                    'birthday' => $this->context->customer->birthday ? $this->context->customer->birthday : '',
+                    'firstname' => $this->context->customer->firstname ? $this->context->customer->firstname : '',
+                    'lastname' => $this->context->customer->lastname ? $this->context->customer->lastname : '',
+                )
+            );
+        }
         if ($language !== '')
             $fields['lang'] = strtolower($language);
 
