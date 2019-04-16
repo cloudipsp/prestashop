@@ -34,7 +34,7 @@ class fondy_bankingRedirectModuleFrontController extends ModuleFrontController
             'currency' => $payCurrency->iso_code,
             'server_callback_url' => $link->getModuleLink('fondy_banking', 'callback'),
             'response_url' => $link->getModuleLink('fondy_banking', 'result'),
-            'default_payment_system' => 'trustly',
+            'default_payment_system' => 'banklinks_eu',
             'sender_email' => $this->context->customer->email ? $this->context->customer->email : ''
         );
         if ($language !== '')
