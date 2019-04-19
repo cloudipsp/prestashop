@@ -5,7 +5,9 @@ class fondy_banking extends PaymentModule
     private $settingsList = array(
         'FONDY_BANKING_MERCHANT',
         'FONDY_BANKING_SECRET_KEY',
-        'FONDY_BANKING_BACK_REF'
+        'FONDY_BANKING_EU_BANKS',
+        'FONDY_BANKING_PL_BANKS',
+        'FONDY_BANKING_REF',
     );
 
     public function __construct()
