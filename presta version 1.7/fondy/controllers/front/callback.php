@@ -39,12 +39,25 @@ class FondyCallbackModuleFrontController extends ModuleFrontController
                 'merchant_id' => $fondy->getOption('merchant'),
                 'secret_key' => $fondy->getOption('secret_key')
             );
+            list($orderId,) = explode(FondyCls::ORDER_SEPARATOR, $_POST['order_id']);
+            $order = new Order($orderId);
 
+            if ((int)$order->getCurrentState() == (int)Configuration::get('PS_OS_PAYMENT')) {
+                PrestaShopLogger::addLog(
+                    sprintf(
+                        'Order id %s current state %s = expected state %s',
+                        $order->id,
+                        $order->getCurrentState(),
+                        1
+                    ),
+                    3
+                );
+                die('State is already Paid');
+            }
             $isPaymentValid = FondyCls::isPaymentValid($settings, $_POST);
             if ($isPaymentValid !== true) {
                 exit($isPaymentValid);
             }else{
-				list($orderId,) = explode(FondyCls::ORDER_SEPARATOR, $_POST['order_id']);
 				$history = new OrderHistory();
 				$history->id_order = $orderId;
 				$history->changeIdOrderState((int)Configuration::get('PS_OS_PAYMENT'), $orderId);
