@@ -1,5 +1,7 @@
 <?php
+
 use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
+
 class Fondy extends PaymentModule
 {
     private $settingsList = array(
@@ -7,8 +9,9 @@ class Fondy extends PaymentModule
         'FONDY_SECRET_KEY',
         'FONDY_BACK_REF'
     );
-	private $_html = '';
+    private $_html = '';
     private $_postErrors = array();
+
     public function __construct()
     {
         $this->name = 'fondy';
@@ -25,8 +28,7 @@ class Fondy extends PaymentModule
     public function install()
     {
         return parent::install()
-            && $this->registerHook('paymentOptions')
-        ;
+            && $this->registerHook('paymentOptions');
     }
 
     public function uninstall()
@@ -106,9 +108,9 @@ class Fondy extends PaymentModule
     {
         if (Tools::isSubmit('btnSubmit')) {
             if (empty($_POST['merchant']))
-				$this->_postErrors[] = $this->l('Merchant ID is required.');
-			if (empty($_POST['secret_key']))
-				$this->_postErrors[] = $this->l('Secret key is required.');
+                $this->_postErrors[] = $this->l('Merchant ID is required.');
+            if (empty($_POST['secret_key']))
+                $this->_postErrors[] = $this->l('Secret key is required.');
         }
     }
 
@@ -122,7 +124,7 @@ class Fondy extends PaymentModule
         $this->_html .= '<div class="bootstrap">
         <div class="module_confirmation conf confirm alert alert-success">
             <button type="button" class="close" data-dismiss="alert">×</button>
-            '.$updated.'
+            ' . $updated . '
         </div>
         </div>';
     }
@@ -131,27 +133,27 @@ class Fondy extends PaymentModule
 
     public function hookPaymentOptions($params)
     {
-       if (!$this->active) {
+        if (!$this->active) {
             return;
         }
         if (!$this->_checkCurrency($params['cart'])) return;
-        
+
         $this->context->smarty->assign(array(
             'this_path' => $this->_path,
             'id' => (int)$params['cart']->id,
             'this_path_ssl' => Tools::getShopDomainSsl(true, true) . __PS_BASE_URI__ . 'modules/' . $this->name . '/',
             'this_description' => $this->l('Pay via payment system Fondy')
         ));
-		
+
         $newOption = new PaymentOption();
         $newOption->setModuleName($this->name)
-                ->setCallToActionText($this->l('Pay via Fondy'))
-                ->setAction($this->context->link->getModuleLink($this->name, 'redirect', ['id_cart' => (int)$params['cart']->id], true))
-				->setAdditionalInformation($this->context->smarty->fetch('module:fondy/fondy.tpl'))
-                ;
+            ->setCallToActionText($this->l('Pay via Fondy'))
+            ->setAction($this->context->link->getModuleLink($this->name, 'redirect', ['id_cart' => (int)$params['cart']->id], true))
+            ->setAdditionalInformation($this->context->smarty->fetch('module:fondy/fondy.tpl'));
 
         return [$newOption];
     }
+
     private function _checkCurrency($cart)
     {
         $currency_order = new Currency((int)($cart->id_currency));
