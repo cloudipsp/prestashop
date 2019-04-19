@@ -1,14 +1,19 @@
 <?php
+
 use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
+
 class fondy_banking extends PaymentModule
 {
     private $settingsList = array(
         'FONDY_BANKING_MERCHANT',
         'FONDY_BANKING_KEY',
-        'FONDY_BANKING_REF'
+        'FONDY_BANKING_EU_BANKS',
+        'FONDY_BANKING_PL_BANKS',
+        'FONDY_BANKING_REF',
     );
-	private $_html = '';
+    private $_html = '';
     private $_postErrors = array();
+
     public function __construct()
     {
         $this->name = 'fondy_banking';
@@ -26,8 +31,7 @@ class fondy_banking extends PaymentModule
     public function install()
     {
         return parent::install()
-            && $this->registerHook('paymentOptions')
-        ;
+            && $this->registerHook('paymentOptions');
     }
 
     public function uninstall()
@@ -50,6 +54,8 @@ class fondy_banking extends PaymentModule
 
     private function _displayForm()
     {
+        $is_checked_pl = $this->getOption("pl_banks") ? 'checked' : '';
+        $is_checked_eu = $this->getOption("eu_banks") ? 'checked' : '';
         $this->_html .=
             '<form action="' . Tools::htmlentitiesUTF8($_SERVER['REQUEST_URI']) . '" method="post">
 			<fieldset>
@@ -64,6 +70,14 @@ class fondy_banking extends PaymentModule
 					<tr>
 						<td width="130" style="height: 35px;">' . $this->l('Secret key') . '</td>
 						<td><input type="text" name="secret_key" value="' . $this->getOption("secret_key") . '" style="width: 300px;" /></td>
+					</tr>
+					<tr>
+						<td width="130" style="height: 35px;">' . $this->l('Enable EU Banklinks') . '</td>
+						<td><input type="checkbox" name="eu_banks" ' . $is_checked_eu . ' style="width: 10px;" /></td>
+					</tr>
+					<tr>
+						<td width="130" style="height: 35px;">' . $this->l('Enable PL Banklinks') . '</td>
+						<td><input type="checkbox" name="pl_banks" ' . $is_checked_pl . ' style="width: 10px;" /></td>
 					</tr>
 					<tr><td colspan="2" align="center"><input class="button" name="btnSubmit" value="' . $this->l('Update settings') . '" type="submit" /></td></tr>
 				</table>
@@ -107,9 +121,9 @@ class fondy_banking extends PaymentModule
     {
         if (Tools::isSubmit('btnSubmit')) {
             if (empty($_POST['merchant']))
-				$this->_postErrors[] = $this->l('Merchant ID is required.');
-			if (empty($_POST['secret_key']))
-				$this->_postErrors[] = $this->l('Secret key is required.');
+                $this->_postErrors[] = $this->l('Merchant ID is required.');
+            if (empty($_POST['secret_key']))
+                $this->_postErrors[] = $this->l('Secret key is required.');
         }
     }
 
@@ -118,12 +132,14 @@ class fondy_banking extends PaymentModule
         if (Tools::isSubmit('btnSubmit')) {
             Configuration::updateValue('FONDY_BANKING_MERCHANT', Tools::getValue('merchant'));
             Configuration::updateValue('FONDY_BANKING_SECRET_KEY', Tools::getValue('secret_key'));
+            Configuration::updateValue('FONDY_BANKING_PL_BANKS', Tools::getValue('pl_banks'));
+            Configuration::updateValue('FONDY_BANKING_EU_BANKS', Tools::getValue('eu_banks'));
         }
         $updated = $this->l('Settings Updated');
         $this->_html .= '<div class="bootstrap">
         <div class="module_confirmation conf confirm alert alert-success">
             <button type="button" class="close" data-dismiss="alert">×</button>
-            '.$updated.'
+            ' . $updated . '
         </div>
         </div>';
     }
@@ -132,27 +148,50 @@ class fondy_banking extends PaymentModule
 
     public function hookPaymentOptions($params)
     {
-       if (!$this->active) {
+        if (!$this->active) {
             return;
         }
         if (!$this->_checkCurrency($params['cart'])) return;
-        
-        $this->context->smarty->assign(array(
+
+        $data = array(
             'this_path' => $this->_path,
             'id' => (int)$params['cart']->id,
             'this_path_ssl' => Tools::getShopDomainSsl(true, true) . __PS_BASE_URI__ . 'modules/' . $this->name . '/',
-            'this_description' => $this->l('Bank wire payment.')
-        ));
-		
+            'this_description' => $this->l('Bank wire payment.'),
+            'this_description_pl' => $this->l('Fondy PL banklinks.'),
+            'pl_banks_enabled' => false
+        );
+
+        if ($this->getOption("pl_banks")){
+            $data['pl_banks_enabled'] = true;
+        }
+
+        if ($this->getOption("eu_banks")){
+            $data['eu_banks_enabled'] = true;
+        }
+
+        $this->context->smarty->assign($data);
+
         $newOption = new PaymentOption();
-        $newOption->setModuleName($this->name)
+
+        if ($this->getOption("eu_banks")) {
+            $newOption = new PaymentOption();
+            $newOption->setModuleName($this->name)
                 ->setCallToActionText($this->l('Pay by bank wire'))
                 ->setAction($this->context->link->getModuleLink($this->name, 'redirect', ['id_cart' => (int)$params['cart']->id], true))
-				->setAdditionalInformation($this->context->smarty->fetch('module:fondy_banking/fondy_banking.tpl'))
-                ;
-
-        return [$newOption];
+                ->setAdditionalInformation($this->context->smarty->fetch('module:fondy_banking/fondy_banking.tpl'));
+        }
+        if ($this->getOption("pl_banks")) {
+            $newOption2 = new PaymentOption();
+            $newOption2->setModuleName($this->name)
+                ->setCallToActionText($this->l('Fondy PL banklinks'))
+                ->setAction($this->context->link->getModuleLink($this->name, 'redirect',
+                    ['id_cart' => (int)$params['cart']->id, 'pl_banks_enabled' => true], true))
+                ->setAdditionalInformation($this->context->smarty->fetch('module:fondy_banking/fondy_banking_pl.tpl'));
+        }
+        return [$newOption, $newOption2];
     }
+
     private function _checkCurrency($cart)
     {
         $currency_order = new Currency((int)($cart->id_currency));
