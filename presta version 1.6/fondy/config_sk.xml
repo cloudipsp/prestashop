@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <module>
 	<name>fondy</name>
-	<displayName><![CDATA[Платежи Fondy]]></displayName>
+	<displayName><![CDATA[Platba kartou on-line]]></displayName>
 	<version><![CDATA[1.0]]></version>
-	<description><![CDATA[Оплата через Fondy]]></description>
+	<description><![CDATA[Platobn&aacute; br&aacute;na FONFY]]></description>
 	<author><![CDATA[Fondy]]></author>
 	<tab><![CDATA[payments_gateways]]></tab>
-	<confirmUninstall><![CDATA[Действительно хотите удалить модуль?]]></confirmUninstall>
+	<confirmUninstall><![CDATA[Naozaj chcete odstrániť modul?]]></confirmUninstall>
 	<is_configurable>1</is_configurable>
 	<need_instance>1</need_instance>
 	<limited_countries></limited_countries>

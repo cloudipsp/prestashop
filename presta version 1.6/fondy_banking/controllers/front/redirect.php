@@ -20,8 +20,9 @@ class fondy_bankingRedirectModuleFrontController extends ModuleFrontController
 
         $payCurrency = Context::getContext()->currency;
         $cart = $this->context->cart;
+        $pl_system = Tools::getValue('pl_banks_enabled');
 
-        $fondy = new fondy_banking();
+        $fondy = $this->module;
         $total = $cart->getOrderTotal();
 
         $fondy->validateOrder(intval($cart->id), _PS_OS_PREPARATION_, $total, $fondy->displayName);
@@ -37,6 +38,9 @@ class fondy_bankingRedirectModuleFrontController extends ModuleFrontController
             'default_payment_system' => 'banklinks_eu',
             'sender_email' => $this->context->customer->email ? $this->context->customer->email : ''
         );
+
+        if ($pl_system and $fondy->getOption('pl_banks'))
+            $fields['default_payment_system'] = 'banklinks_pl';
         if ($language !== '')
             $fields['lang'] = strtolower($language);
 

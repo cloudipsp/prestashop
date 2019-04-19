@@ -4,7 +4,8 @@ class FondyCls
 {
     const ORDER_APPROVED = 'approved';
     const ORDER_DECLINED = 'declined';
-
+	const ORDER_EXPIRED = 'expired';
+	
     const ORDER_SEPARATOR = '#';
 
     const SIGNATURE_SEPARATOR = '|';

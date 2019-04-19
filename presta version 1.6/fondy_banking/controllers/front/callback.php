@@ -27,7 +27,7 @@ class fondy_bankingCallbackModuleFrontController extends ModuleFrontController
         }
         try {
 
-            if ($_POST['order_status'] == FondyCls::ORDER_DECLINED) {
+            if ($_POST['order_status'] == FondyCls::ORDER_DECLINED or $_POST['order_status'] == FondyCls::ORDER_EXPIRED) {
                 list($orderId,) = explode(FondyCls::ORDER_SEPARATOR, $_POST['order_id']);
                 $history = new OrderHistory();
                 $history->id_order = $orderId;
@@ -39,6 +39,8 @@ class fondy_bankingCallbackModuleFrontController extends ModuleFrontController
             }
 
             $fondy = new fondy_banking();
+            list($orderId,) = explode(FondyCls::ORDER_SEPARATOR, $_POST['order_id']);
+            $order = new Order(Order::getOrderByCartId($orderId));
             $settings = array(
                 'merchant_id' => $fondy->getOption('merchant'),
                 'secret_key' => $fondy->getOption('secret_key')
@@ -49,7 +51,22 @@ class fondy_bankingCallbackModuleFrontController extends ModuleFrontController
                 exit($isPaymentValid);
             }
 
-            list($orderId,) = explode(FondyCls::ORDER_SEPARATOR, $_POST['order_id']);
+            if ((float)$order->total_paid != (float)($_POST['amount'] / 100)) {
+                exit('Amount is invalid');
+            }
+            if ((int)$order->getCurrentState() == (int)Configuration::get('PS_OS_PAYMENT')) {
+                PrestaShopLogger::addLog(
+                    sprintf(
+                        'Order id %s current state %s = expected state %s',
+                        $order->id,
+                        $order->getCurrentState(),
+                        1
+                    ),
+                    3
+                );
+                die('State is already Paid');
+            }
+
             $history = new OrderHistory();
             $history->id_order = $orderId;
             $history->changeIdOrderState((int)Configuration::get('PS_OS_PAYMENT'), $orderId);
