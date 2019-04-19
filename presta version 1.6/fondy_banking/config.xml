@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<module>
+	<name>fondy_banking</name>
+	<displayName><![CDATA[Fondy bank wire payments]]></displayName>
+	<version><![CDATA[1.0.1]]></version>
+	<description><![CDATA[Payment gateway supports EUR, USD, PLN, GBP, UAH, RUB and +100 other currencies.]]></description>
+	<author><![CDATA[Fondy]]></author>
+	<tab><![CDATA[payments_gateways]]></tab>
+	<confirmUninstall><![CDATA[Are you want to remove the module?]]></confirmUninstall>
+	<is_configurable>1</is_configurable>
+	<need_instance>1</need_instance>
+	<limited_countries></limited_countries>
+</module>

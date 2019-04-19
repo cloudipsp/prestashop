@@ -1,9 +1,9 @@
 <?php
 
-require_once(dirname(__FILE__) . '../../../fondy.php');
+require_once(dirname(__FILE__) . '../../../fondy_banking.php');
 require_once(dirname(__FILE__) . '../../../fondy.cls.php');
 
-class FondyCallbackModuleFrontController extends ModuleFrontController
+class fondy_bankingCallbackModuleFrontController extends ModuleFrontController
 {
     public $display_column_left = false;
     public $display_column_right = false;
@@ -38,7 +38,7 @@ class FondyCallbackModuleFrontController extends ModuleFrontController
                 exit('Order declined');
             }
 
-            $fondy = new Fondy();
+            $fondy = new fondy_banking();
             list($orderId,) = explode(FondyCls::ORDER_SEPARATOR, $_POST['order_id']);
             $order = new Order(Order::getOrderByCartId($orderId));
             $settings = array(
