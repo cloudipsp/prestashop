@@ -11,8 +11,21 @@
 7. Enter merchant, secret and save data
 8. After setup -  turn on
 
+``` In bank ware choose method to show. ```
+
 
 ![Скриншот][1]
 ----
 
 [1]: https://raw.githubusercontent.com/cloudipsp/prestashop/master/s.png
+
+![Скриншот][2]
+----
+
+[2]: https://raw.githubusercontent.com/cloudipsp/prestashop/master/s2.png
+
+
+![Скриншот][3]
+----
+
+[3]: https://raw.githubusercontent.com/cloudipsp/prestashop/master/s3.png
