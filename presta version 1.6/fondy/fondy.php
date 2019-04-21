@@ -17,18 +17,21 @@ class Fondy extends PaymentModule
         'FONDY_BACK_REF'
     );
 
+    private $_postErrors = array();
+
     public function __construct()
     {
         $this->name = 'fondy';
         $this->tab = 'payments_gateways';
         $this->version = '1.0.0';
-        $this->author = 'Fondy';
-        $this->_postErrors = array();
+        $this->author = 'DM';
+        $this->bootstrap = true;
+        $this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);
 
         parent::__construct();
-        $this->displayName = $this->l('Платежи Fondy');
-        $this->description = $this->l('Оплата через Fondy');
-        $this->confirmUninstall = $this->l('Действительно хотите удалить модуль?');
+        $this->displayName = $this->l('FONDY online payments');
+        $this->description = $this->l('Payments via FONDY');
+        $this->confirmUninstall = $this->l('Are you want to remove the module?');
     }
 
     public function install()
@@ -57,88 +60,146 @@ class Fondy extends PaymentModule
         return Configuration::get("FONDY_" . Tools::strtoupper($name));
     }
 
-    private function _displayForm()
-    {
-        $checked = '';
-        if ($this->getOption("form_method")) {
-            $checked = 'checked';
-        }
-        $this->_html .=
-            '<form action="' . Tools::htmlentitiesUTF8($_SERVER['REQUEST_URI']) . '" method="post">
-			<fieldset>
-			<legend><img src="../img/admin/contact.gif" />' . $this->l('Contact details') . '</legend>
-				<table border="0" width="500" cellpadding="0" cellspacing="0" id="form">
-					<tr><td colspan="2">' . $this->l('Please specify the Fondy account details for customers') . '.<br /><br /></td></tr>
-
-					<tr>
-						<td width="130" style="height: 35px;">' . $this->l('Merchant') . '</td>
-						<td><input type="text" name="merchant" value="' . $this->getOption("merchant") . '" style="width: 300px;" /></td>
-					</tr>
-					<tr>
-						<td width="130" style="height: 35px;">' . $this->l('Secret key') . '</td>
-						<td><input type="text" name="secret_key" value="' . $this->getOption("secret_key") . '" style="width: 300px;" /></td>
-					</tr>
-					<tr>
-						<td width="130" style="height: 35px;">' . $this->l('Form method') . '</td>
-						<td>
-						    <input type="checkbox" ' . $checked . ' name="form_method" />
-						</td>
-					</tr>
-					<tr>
-					    <td colspan="2">
-					        <input class="button" name="btnSubmit" value="' . $this->l('Update settings') . '" type="submit" />
-					    </td>
-					</tr>
-				</table>
-			</fieldset>
-		</form>';
-    }
-
-    private function _displayFondy()
-    {
-        $this->_html .= '<img src="../modules/fondy/views/img/logo.png" style="float:left; margin-right:15px;"><b>' .
-            $this->l('This module allows you to accept payments by Fondy.') . '</b><br /><br />' .
-            $this->l('If the client chooses this payment mode, the order will change its status into a \'Waiting for payment\' status.') .
-            '<br /><br /><br />';
-    }
-
+    /**
+     * Load the configuration form
+     */
     public function getContent()
     {
-        $this->_html = '<h2>' . $this->displayName . '</h2>';
-
-        if (Tools::isSubmit('btnSubmit')) {
+        /**
+         * If values have been submitted in the form, process.
+         */
+        $err = '';
+        if (((bool)Tools::isSubmit('submitFondyModule')) == true) {
             $this->_postValidation();
             if (!sizeof($this->_postErrors)) {
-                $this->_postProcess();
+                $this->postProcess();
             } else {
                 foreach ($this->_postErrors as $err) {
-                    $this->_html .= '<div class="alert error">' . $err . '</div>';
+                    $err .= $this->displayError($err);
                 }
             }
-        } else {
-            $this->_html .= '<br />';
         }
-        $this->_displayFondy();
-        $this->_displayForm();
-        return $this->_html;
+
+        return $err . $this->renderForm();
     }
 
+    /**
+     * Create the form that will be displayed in the configuration of your module.
+     */
+    protected function renderForm()
+    {
+        $helper = new HelperForm();
+
+        $helper->show_toolbar = false;
+        $helper->table = $this->table;
+        $helper->module = $this;
+        $helper->default_form_language = $this->context->language->id;
+        $helper->allow_employee_form_lang = Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG', 0);
+
+        $helper->identifier = $this->identifier;
+        $helper->submit_action = 'submitFondyModule';
+        $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false)
+            . '&configure=' . $this->name . '&tab_module=' . $this->tab . '&module_name=' . $this->name;
+        $helper->token = Tools::getAdminTokenLite('AdminModules');
+
+        $helper->tpl_vars = array(
+            'fields_value' => $this->getConfigFormValues(), /* Add values for your inputs */
+            'languages' => $this->context->controller->getLanguages(),
+            'id_language' => $this->context->language->id,
+        );
+
+        return $helper->generateForm(array($this->getConfigForm()));
+    }
+
+    /**
+     * Create the structure of your form.
+     */
+    protected function getConfigForm()
+    {
+        return array(
+            'form' => array(
+                'legend' => array(
+                    'title' => $this->l('Please specify the Fondy account details for customers'),
+                    'icon' => 'icon-cogs',
+                ),
+                'input' => array(
+                    array(
+                        'col' => 4,
+                        'type' => 'text',
+                        'prefix' => '<i class="icon icon-user"></i>',
+                        'desc' => $this->l('Enter a merchant id'),
+                        'name' => 'FONDY_MERCHANT',
+                        'label' => $this->l('Merchant ID'),
+                    ),
+                    array(
+                        'col' => 4,
+                        'type' => 'text',
+                        'prefix' => '<i class="icon icon-key"></i>',
+                        'name' => 'FONDY_SECRET_KEY',
+                        'desc' => $this->l('Enter a secret key'),
+                        'label' => $this->l('Secret key'),
+                    ),
+                    array(
+                        'col' => 4,
+                        'type' => 'switch',
+                        'prefix' => '<i class="icon icon-form"></i>',
+                        'name' => 'FONDY_FORM_METHOD',
+                        'label' => $this->l('Use form method ?'),
+                        'values' => array(
+                            array(
+                                'id' => 'active_on',
+                                'value' => 1,
+                                'label' => $this->l('Enabled')
+                            ),
+                            array(
+                                'id' => 'active_off',
+                                'value' => 0,
+                                'label' => $this->l('Disabled')
+                            )
+                        ),
+                    ),
+                ),
+                'submit' => array(
+                    'title' => $this->l('Save'),
+                    'class' => 'btn btn-default pull-right'
+                ),
+            ),
+        );
+    }
+
+    /**
+     * Set values for the inputs.
+     */
+    protected function getConfigFormValues()
+    {
+        return array(
+            'FONDY_MERCHANT' => Configuration::get('FONDY_MERCHANT', null),
+            'FONDY_SECRET_KEY' => Configuration::get('FONDY_SECRET_KEY', null),
+            'FONDY_FORM_METHOD' => Configuration::get('FONDY_FORM_METHOD', null),
+        );
+    }
+
+    /**
+     * Save form data.
+     */
+    protected function postProcess()
+    {
+        $form_values = $this->getConfigFormValues();
+        foreach (array_keys($form_values) as $key) {
+            Configuration::updateValue($key, Tools::getValue($key));
+        }
+    }
 
     private function _postValidation()
     {
-        if (Tools::isSubmit('btnSubmit')) {
-            /*$this->_postErrors[] = $this->l('Account details are required.');*/
+        if (Tools::isSubmit('submitFondyModule')) {
+            if (empty(Tools::getValue('FONDY_MERCHANT'))) {
+                $this->_postErrors[] = $this->l('Merchant ID is required.');
+            }
+            if (empty(Tools::getValue('FONDY_SECRET_KEY'))) {
+                $this->_postErrors[] = $this->l('Secret key is required.');
+            }
         }
-    }
-
-    private function _postProcess()
-    {
-        if (Tools::isSubmit('btnSubmit')) {
-            Configuration::updateValue('FONDY_MERCHANT', Tools::getValue('merchant'));
-            Configuration::updateValue('FONDY_SECRET_KEY', Tools::getValue('secret_key'));
-            Configuration::updateValue('FONDY_FORM_METHOD', Tools::getIsset('form_method'));
-        }
-        $this->_html .= '<div class="conf confirm"><img src="../img/admin/ok.gif" alt="' . $this->l('ok') . '" /> ' . $this->l('Settings updated') . '</div>';
     }
 
     /**
