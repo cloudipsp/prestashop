@@ -1,4 +1,12 @@
 <?php
+/**
+ * 2014-2019 Fondy
+ *
+ * @author DM
+ * @copyright  2014-2019 Fondy
+ * @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ * @version    1.0.0
+ */
 
 class Fondy extends PaymentModule
 {
@@ -13,9 +21,9 @@ class Fondy extends PaymentModule
     {
         $this->name = 'fondy';
         $this->tab = 'payments_gateways';
-        $this->version = '1.0';
+        $this->version = '1.0.0';
         $this->author = 'Fondy';
-        $this->_postErrors = [];
+        $this->_postErrors = array();
 
         parent::__construct();
         $this->displayName = $this->l('Платежи Fondy');
@@ -25,7 +33,7 @@ class Fondy extends PaymentModule
 
     public function install()
     {
-        if (!parent::install() OR !$this->registerHook('payment')) {
+        if (!parent::install() or !$this->registerHook('payment')) {
             return false;
         }
         return true;
@@ -46,14 +54,15 @@ class Fondy extends PaymentModule
 
     public function getOption($name)
     {
-        return Configuration::get("FONDY_" . strtoupper($name));
+        return Configuration::get("FONDY_" . Tools::strtoupper($name));
     }
 
     private function _displayForm()
     {
         $checked = '';
-        if ($this->getOption("form_method"))
+        if ($this->getOption("form_method")) {
             $checked = 'checked';
+        }
         $this->_html .=
             '<form action="' . Tools::htmlentitiesUTF8($_SERVER['REQUEST_URI']) . '" method="post">
 			<fieldset>
@@ -87,7 +96,7 @@ class Fondy extends PaymentModule
 
     private function _displayFondy()
     {
-        $this->_html .= '<img src="../modules/fondy/logo.png" style="float:left; margin-right:15px;"><b>' .
+        $this->_html .= '<img src="../modules/fondy/views/img/logo.png" style="float:left; margin-right:15px;"><b>' .
             $this->l('This module allows you to accept payments by Fondy.') . '</b><br /><br />' .
             $this->l('If the client chooses this payment mode, the order will change its status into a \'Waiting for payment\' status.') .
             '<br /><br /><br />';
@@ -102,7 +111,7 @@ class Fondy extends PaymentModule
             if (!sizeof($this->_postErrors)) {
                 $this->_postProcess();
             } else {
-                foreach ($this->_postErrors AS $err) {
+                foreach ($this->_postErrors as $err) {
                     $this->_html .= '<div class="alert error">' . $err . '</div>';
                 }
             }
@@ -132,12 +141,17 @@ class Fondy extends PaymentModule
         $this->_html .= '<div class="conf confirm"><img src="../img/admin/ok.gif" alt="' . $this->l('ok') . '" /> ' . $this->l('Settings updated') . '</div>';
     }
 
-    # Display
-
+    /**
+     * @param $params
+     */
     public function hookPayment($params)
     {
-        if (!$this->active) return;
-        if (!$this->_checkCurrency($params['cart'])) return;
+        if (!$this->active) {
+            return;
+        }
+        if (!$this->_checkCurrency($params['cart'])) {
+            return;
+        }
 
         $this->context->smarty->assign(array(
             'this_path' => $this->_path,
@@ -146,7 +160,7 @@ class Fondy extends PaymentModule
             'this_description' => $this->l('Pay via Fondy')
         ));
 
-        return $this->display(__FILE__, 'fondy.tpl');
+        return $this->display(__FILE__, 'views/templates/front/fondy.tpl');
     }
 
     private function _checkCurrency($cart)
@@ -155,7 +169,7 @@ class Fondy extends PaymentModule
         $currencies_module = $this->getCurrency((int)$cart->id_currency);
 
         if (is_array($currencies_module)) {
-            foreach ($currencies_module AS $currency_module) {
+            foreach ($currencies_module as $currency_module) {
                 if ($currency_order->id == $currency_module['id_currency']) {
                     return true;
                 }

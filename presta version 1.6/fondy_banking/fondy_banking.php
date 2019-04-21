@@ -1,4 +1,12 @@
 <?php
+/**
+ * 2014-2019 Fondy
+ *
+ *  @author DM
+ *  @copyright  2014-2019 Fondy
+ *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ *  @version    1.0.0
+ */
 
 class fondy_banking extends PaymentModule
 {
@@ -10,13 +18,16 @@ class fondy_banking extends PaymentModule
         'FONDY_BANKING_REF',
     );
 
+    /**
+     * fondy_banking constructor.
+     */
     public function __construct()
     {
         $this->name = 'fondy_banking';
         $this->tab = 'payments_gateways';
         $this->version = '1.0.1';
         $this->author = 'Fondy';
-		$this->_postErrors = [];
+        $this->_postErrors = array();
 
         parent::__construct();
         $this->displayName = $this->l('Fondy bank wire payments');
@@ -24,6 +35,9 @@ class fondy_banking extends PaymentModule
         $this->confirmUninstall = $this->l('Are you want to remove the module?');
     }
 
+    /**
+     * @return bool
+     */
     public function install()
     {
         if (!parent::install() OR !$this->registerHook('payment')) {
@@ -32,6 +46,9 @@ class fondy_banking extends PaymentModule
         return true;
     }
 
+    /**
+     * @return bool
+     */
     public function uninstall()
     {
         foreach ($this->settingsList as $val) {
@@ -45,11 +62,18 @@ class fondy_banking extends PaymentModule
         return true;
     }
 
+    /**
+     * @param $name
+     * @return mixed
+     */
     public function getOption($name)
     {
-        return Configuration::get("FONDY_BANKING_" . strtoupper($name));
+        return Configuration::get("FONDY_BANKING_" . Tools::strtoupper($name));
     }
 
+    /**
+     * Settings
+     */
     private function _displayForm()
     {
         $is_checked_pl = $this->getOption("pl_banks") ? 'checked' : '';
@@ -85,7 +109,7 @@ class fondy_banking extends PaymentModule
 
     private function _displayFondy()
     {
-        $this->_html .= '<img src="../modules/fondy_banking/logo.png" style="float:left; margin-right:15px;"><b>' .
+        $this->_html .= '<img src="../modules/fondy_banking/views/img/logo.png" style="float:left; margin-right:15px;"><b>' .
             $this->l('This module allows you to accept payments by Fondy.') . '</b><br /><br />' .
             $this->l('If the client chooses this payment mode, the order will change its status into a \'Waiting for payment\' status.') .
             '<br /><br /><br />';
@@ -120,6 +144,9 @@ class fondy_banking extends PaymentModule
         }
     }
 
+    /**
+     * postProcess
+     */
     private function _postProcess()
     {
         if (Tools::isSubmit('btnSubmit')) {
@@ -131,35 +158,45 @@ class fondy_banking extends PaymentModule
         $this->_html .= '<div class="conf confirm"><img src="../img/admin/ok.gif" alt="' . $this->l('ok') . '" /> ' . $this->l('Settings updated') . '</div>';
     }
 
-    # Display
-
+    /**
+     * @param $params
+     */
     public function hookPayment($params)
     {
-        if (!$this->active) return;
-        if (!$this->_checkCurrency($params['cart'])) return;
+        if (!$this->active) {
+            return;
+        }
+        if (!$this->_checkCurrency($params['cart'])) {
+            return;
+        }
 
         $data = array(
             'this_path' => $this->_path,
             'id' => (int)$params['cart']->id,
-            'this_path_ssl' => Tools::getShopDomainSsl(true, true) . __PS_BASE_URI__ . 'modules/' . $this->name . '/',
+            'this_path_ssl' => Tools::getShopDomainSsl(true,
+                    true) . __PS_BASE_URI__ . 'modules/' . $this->name . '/',
             'this_description' => $this->l('Bank wire payment.'),
             'this_description_pl' => $this->l('Fondy PL banklinks.'),
             'pl_banks_enabled' => false
         );
 
-        if ($this->getOption("pl_banks")){
+        if ($this->getOption("pl_banks")) {
             $data['pl_banks_enabled'] = true;
         }
 
-        if ($this->getOption("eu_banks")){
+        if ($this->getOption("eu_banks")) {
             $data['eu_banks_enabled'] = true;
         }
 
         $this->context->smarty->assign($data);
 
-        return $this->display(__FILE__, 'fondy_banking.tpl');
+        return $this->display(__FILE__, 'views/templates/front/fondy_banking.tpl');
     }
 
+    /**
+     * @param $cart
+     * @return bool
+     */
     private function _checkCurrency($cart)
     {
         $currency_order = new Currency((int)($cart->id_currency));

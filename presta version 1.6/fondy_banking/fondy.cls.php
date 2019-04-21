@@ -1,4 +1,12 @@
 <?php
+/**
+ * 2014-2019 Fondy
+ *
+ *  @author DM
+ *  @copyright  2014-2019 Fondy
+ *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ *  @version    1.0.0
+ */
 
 class FondyCls
 {
@@ -12,7 +20,12 @@ class FondyCls
 
     const URL = "https://api.fondy.eu/api/checkout/redirect/";
 
-
+    /**
+     * @param $data
+     * @param $password
+     * @param bool $encoded
+     * @return string
+     */
     public static function getSignature($data, $password, $encoded = true)
     {
         $data = array_filter($data, function ($var) {
@@ -21,7 +34,7 @@ class FondyCls
         ksort($data);
 
         $str = $password;
-        foreach ($data as $k => $v) {
+        foreach ($data as $v) {
             $str .= self::SIGNATURE_SEPARATOR . $v;
         }
 
@@ -32,6 +45,11 @@ class FondyCls
         }
     }
 
+    /**
+     * @param $fondySettings
+     * @param $response
+     * @return bool|string
+     */
     public static function isPaymentValid($fondySettings, $response)
     {
         if ($fondySettings['merchant_id'] != $response['merchant_id']) {

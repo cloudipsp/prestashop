@@ -1,4 +1,13 @@
 <?php
+/**
+ * 2014-2019 Fondy
+ *
+ *  @author DM
+ *  @copyright  2014-2019 Fondy
+ *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ *  @version    1.0.0
+ */
+
 require_once(dirname(__FILE__) . '../../../fondy_banking.php');
 require_once(dirname(__FILE__) . '../../../fondy.cls.php');
 
@@ -13,9 +22,10 @@ class fondy_bankingRedirectModuleFrontController extends ModuleFrontController
     {
         parent::initContent();
 
-        global $cookie, $link;
+        $cookie = $this->context->cookie;
+        $link = $this->context->link;
 
-        $language = Language::getIsoById(intval($cookie->id_lang));
+        $language = Language::getIsoById((int)$cookie->id_lang);
         $language = (!in_array($language, array('ua', 'en', 'ru', 'lv', 'fr'))) ? '' : $language;
 
         $payCurrency = Context::getContext()->currency;
@@ -25,7 +35,7 @@ class fondy_bankingRedirectModuleFrontController extends ModuleFrontController
         $fondy = $this->module;
         $total = $cart->getOrderTotal();
 
-        $fondy->validateOrder(intval($cart->id), _PS_OS_PREPARATION_, $total, $fondy->displayName);
+        $fondy->validateOrder((int)$cart->id, _PS_OS_PREPARATION_, $total, $fondy->displayName);
 
         $fields = array(
             'order_id' => $fondy->currentOrder . FondyCls::ORDER_SEPARATOR . time(),
@@ -39,10 +49,12 @@ class fondy_bankingRedirectModuleFrontController extends ModuleFrontController
             'sender_email' => $this->context->customer->email ? $this->context->customer->email : ''
         );
 
-        if ($pl_system and $fondy->getOption('pl_banks'))
+        if ($pl_system and $fondy->getOption('pl_banks')) {
             $fields['default_payment_system'] = 'banklinks_pl';
-        if ($language !== '')
-            $fields['lang'] = strtolower($language);
+        }
+        if ($language !== '') {
+            $fields['lang'] = Tools::strtolower($language);
+        }
 
         $fields['signature'] = FondyCls::getSignature($fields, $fondy->getOption('secret_key'));
         $fields['fondy_url'] = FondyCls::URL;

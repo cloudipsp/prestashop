@@ -19,18 +19,18 @@
             {l s='To checkout' mod='fondy_banking'}
         </button>
     </p>
-    <form id="fondy" method="post" action="{$fondy_url}">
-        <input type="hidden" name="order_id" value="{$order_id}"/>
-        <input type="hidden" name="merchant_id" value="{$merchant_id}"/>
-        <input type="hidden" name="order_desc" value="{$order_desc}"/>
-        <input type="hidden" name="amount" value="{$amount}"/>
-        <input type="hidden" name="currency" value="{$currency}"/>
-        <input type="hidden" name="server_callback_url" value="{$server_callback_url}"/>
-        <input type="hidden" name="response_url" value="{$response_url}"/>
-        <input type="hidden" name="lang" value="{$lang}"/>
-        <input type="hidden" name="sender_email" value="{$sender_email}"/>
-        <input type="hidden" name="default_payment_system" value="{$default_payment_system}"/>
-        <input type="hidden" name="signature" value="{$signature}"/>
+    <form id="fondy" method="post" action="{$fondy_url|escape:'htmlall'}">
+        <input type="hidden" name="order_id" value="{$order_id|escape:'htmlall'}"/>
+        <input type="hidden" name="merchant_id" value="{$merchant_id|escape:'htmlall'}"/>
+        <input type="hidden" name="order_desc" value="{$order_desc|escape:'htmlall'}"/>
+        <input type="hidden" name="amount" value="{$amount|escape:'htmlall'}"/>
+        <input type="hidden" name="currency" value="{$currency|escape:'htmlall'}"/>
+        <input type="hidden" name="server_callback_url" value="{$server_callback_url|escape:'htmlall'}"/>
+        <input type="hidden" name="response_url" value="{$response_url|escape:'htmlall'}"/>
+        <input type="hidden" name="lang" value="{$lang|escape:'htmlall'}"/>
+        <input type="hidden" name="sender_email" value="{$sender_email|escape:'htmlall'}"/>
+        <input type="hidden" name="default_payment_system" value="{$default_payment_system|escape:'htmlall'}"/>
+        <input type="hidden" name="signature" value="{$signature|escape:'htmlall'}"/>
         <input type="hidden" value="{l s='Pay' mod='fondy_banking'}">
     </form>
     <script type="text/javascript">

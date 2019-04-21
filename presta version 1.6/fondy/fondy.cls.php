@@ -1,11 +1,19 @@
 <?php
+/**
+ * 2014-2019 Fondy
+ *
+ *  @author DM
+ *  @copyright  2014-2019 Fondy
+ *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ *  @version    1.0.0
+ */
 
 class FondyCls
 {
     const ORDER_APPROVED = 'approved';
     const ORDER_DECLINED = 'declined';
-	const ORDER_EXPIRED = 'expired';
-	
+    const ORDER_EXPIRED = 'expired';
+
     const ORDER_SEPARATOR = '#';
 
     const SIGNATURE_SEPARATOR = '|';
@@ -21,7 +29,7 @@ class FondyCls
         ksort($data);
 
         $str = $password;
-        foreach ($data as $k => $v) {
+        foreach ($data as $v) {
             $str .= self::SIGNATURE_SEPARATOR . $v;
         }
 

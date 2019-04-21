@@ -1,4 +1,13 @@
 <?php
+/**
+ * 2014-2019 Fondy
+ *
+ *  @author DM
+ *  @copyright  2014-2019 Fondy
+ *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ *  @version    1.0.0
+ */
+
 require_once(dirname(__FILE__) . '../../../fondy.php');
 require_once(dirname(__FILE__) . '../../../fondy.cls.php');
 
@@ -13,9 +22,10 @@ class FondyRedirectModuleFrontController extends ModuleFrontController
     {
         parent::initContent();
 
-        global $cookie, $link;
+        $cookie = $this->context->cookie;
+        $link = $this->context->link;
 
-        $language = Language::getIsoById(intval($cookie->id_lang));
+        $language = Language::getIsoById((int)$cookie->id_lang);
         $language = (!in_array($language, array('ua', 'en', 'ru', 'lv', 'fr'))) ? '' : $language;
 
         $payCurrency = $this->context->currency;
@@ -24,7 +34,7 @@ class FondyRedirectModuleFrontController extends ModuleFrontController
         $fondy = $this->module;
         $total = $cart->getOrderTotal();
 
-        $fondy->validateOrder(intval($cart->id), _PS_OS_PREPARATION_, $total, $fondy->displayName);
+        $fondy->validateOrder((int)$cart->id, _PS_OS_PREPARATION_, $total, $fondy->displayName);
 
         $fields = array(
             'order_id' => $fondy->currentOrder . FondyCls::ORDER_SEPARATOR . time(),
@@ -36,7 +46,7 @@ class FondyRedirectModuleFrontController extends ModuleFrontController
             'response_url' => $link->getModuleLink('fondy', 'result'),
             'sender_email' => $this->context->customer->email ? $this->context->customer->email : ''
         );
-        if($this->context->customer and !$fondy->getOption('form_method')) {
+        if ($this->context->customer and !$fondy->getOption('form_method')) {
             $fields['merchant_data'] = json_encode(
                 array(
                     'birthday' => $this->context->customer->birthday ? $this->context->customer->birthday : '',
@@ -45,8 +55,9 @@ class FondyRedirectModuleFrontController extends ModuleFrontController
                 )
             );
         }
-        if ($language !== '')
-            $fields['lang'] = strtolower($language);
+        if ($language !== '') {
+            $fields['lang'] = Tools::strtolower($language);
+        }
 
         $fields['signature'] = FondyCls::getSignature($fields, $fondy->getOption('secret_key'));
 
@@ -74,11 +85,15 @@ class FondyRedirectModuleFrontController extends ModuleFrontController
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(array('request' => $payment_oplata_args)));
         $result = json_decode(curl_exec($ch));
         if ($result->response->response_status == 'failure') {
-            $out = array('result' => false,
-                'message' => $result->response->error_message);
+            $out = array(
+                'result' => false,
+                'message' => $result->response->error_message
+            );
         } else {
-            $out = array('result' => true,
-                'url' => $result->response->checkout_url);
+            $out = array(
+                'result' => true,
+                'url' => $result->response->checkout_url
+            );
         }
         return $out;
     }
