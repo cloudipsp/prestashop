@@ -1,4 +1,12 @@
 <?php
+/**
+ * 2014-2019 Fondy
+ *
+ * @author DM
+ * @copyright  2014-2019 Fondy
+ * @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ * @version    1.0.0
+ */
 
 use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
 
@@ -16,7 +24,7 @@ class Fondy extends PaymentModule
     {
         $this->name = 'fondy';
         $this->tab = 'payments_gateways';
-        $this->version = '1.0';
+        $this->version = '1.0.0';
         $this->author = 'Fondy';
 
         parent::__construct();
@@ -46,7 +54,7 @@ class Fondy extends PaymentModule
 
     public function getOption($name)
     {
-        return Configuration::get("FONDY_" . strtoupper($name));
+        return Configuration::get("FONDY_" . Tools::strtoupper($name));
     }
 
     private function _displayForm()
@@ -89,10 +97,12 @@ class Fondy extends PaymentModule
             if (!sizeof($this->_postErrors)) {
                 $this->_postProcess();
             } else {
-                foreach ($this->_postErrors AS $err) {
+                foreach ($this->_postErrors as $err) {
                     $this->_html .= '<div class="bootstrap">
 										<div class="module_error alert alert-danger">
-										<button type="button" class="close" data-dismiss="alert">×</button>' . $err . '</div></div>';
+										<button type="button" class="close" data-dismiss="alert">×</button>' . $err . '
+										</div>
+										</div>';
                 }
             }
         } else {
@@ -107,10 +117,12 @@ class Fondy extends PaymentModule
     private function _postValidation()
     {
         if (Tools::isSubmit('btnSubmit')) {
-            if (empty($_POST['merchant']))
+            if (empty(Tools::getValue('merchant'))) {
                 $this->_postErrors[] = $this->l('Merchant ID is required.');
-            if (empty($_POST['secret_key']))
+            }
+            if (empty(Tools::getValue('secret_key'))) {
                 $this->_postErrors[] = $this->l('Secret key is required.');
+            }
         }
     }
 
@@ -134,9 +146,11 @@ class Fondy extends PaymentModule
     public function hookPaymentOptions($params)
     {
         if (!$this->active) {
-            return;
+            return false;
         }
-        if (!$this->_checkCurrency($params['cart'])) return;
+        if (!$this->_checkCurrency($params['cart'])) {
+            return false;
+        }
 
         $this->context->smarty->assign(array(
             'this_path' => $this->_path,
@@ -148,10 +162,17 @@ class Fondy extends PaymentModule
         $newOption = new PaymentOption();
         $newOption->setModuleName($this->name)
             ->setCallToActionText($this->l('Pay via Fondy'))
-            ->setAction($this->context->link->getModuleLink($this->name, 'redirect', ['id_cart' => (int)$params['cart']->id], true))
-            ->setAdditionalInformation($this->context->smarty->fetch('module:fondy/fondy.tpl'));
+            ->setAction(
+                $this->context->link->getModuleLink(
+                    $this->name,
+                    'redirect',
+                    array('id_cart' => (int)$params['cart']->id),
+                    true
+                )
+            )
+            ->setAdditionalInformation($this->context->smarty->fetch('module:fondy/views/templates/front/fondy.tpl'));
 
-        return [$newOption];
+        return array($newOption);
     }
 
     private function _checkCurrency($cart)
@@ -160,7 +181,7 @@ class Fondy extends PaymentModule
         $currencies_module = $this->getCurrency((int)$cart->id_currency);
 
         if (is_array($currencies_module)) {
-            foreach ($currencies_module AS $currency_module) {
+            foreach ($currencies_module as $currency_module) {
                 if ($currency_order->id == $currency_module['id_currency']) {
                     return true;
                 }

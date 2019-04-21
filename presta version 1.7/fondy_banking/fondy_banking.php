@@ -1,4 +1,12 @@
 <?php
+/**
+ * 2014-2019 Fondy
+ *
+ * @author DM
+ * @copyright  2014-2019 Fondy
+ * @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ * @version    1.0.0
+ */
 
 use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
 
@@ -18,7 +26,7 @@ class fondy_banking extends PaymentModule
     {
         $this->name = 'fondy_banking';
         $this->tab = 'payments_gateways';
-        $this->version = '1.0';
+        $this->version = '1.0.0';
         $this->author = 'Fondy';
 
         parent::__construct();
@@ -49,7 +57,7 @@ class fondy_banking extends PaymentModule
 
     public function getOption($name)
     {
-        return Configuration::get("FONDY_BANKING_" . strtoupper($name));
+        return Configuration::get("FONDY_BANKING_" . Tools::strtoupper($name));
     }
 
     private function _displayForm()
@@ -102,7 +110,7 @@ class fondy_banking extends PaymentModule
             if (!sizeof($this->_postErrors)) {
                 $this->_postProcess();
             } else {
-                foreach ($this->_postErrors AS $err) {
+                foreach ($this->_postErrors as $err) {
                     $this->_html .= '<div class="bootstrap">
 										<div class="module_error alert alert-danger">
 										<button type="button" class="close" data-dismiss="alert">×</button>' . $err . '</div></div>';
@@ -120,10 +128,12 @@ class fondy_banking extends PaymentModule
     private function _postValidation()
     {
         if (Tools::isSubmit('btnSubmit')) {
-            if (empty($_POST['merchant']))
+            if (empty(Tools::getValue('merchant'))) {
                 $this->_postErrors[] = $this->l('Merchant ID is required.');
-            if (empty($_POST['secret_key']))
+            }
+            if (empty(Tools::getValue('secret_key'))) {
                 $this->_postErrors[] = $this->l('Secret key is required.');
+            }
         }
     }
 
@@ -149,9 +159,11 @@ class fondy_banking extends PaymentModule
     public function hookPaymentOptions($params)
     {
         if (!$this->active) {
-            return;
+            return false;
         }
-        if (!$this->_checkCurrency($params['cart'])) return;
+        if (!$this->_checkCurrency($params['cart'])) {
+            return false;
+        }
 
         $data = array(
             'this_path' => $this->_path,
@@ -162,34 +174,48 @@ class fondy_banking extends PaymentModule
             'pl_banks_enabled' => false
         );
 
-        if ($this->getOption("pl_banks")){
+        if ($this->getOption("pl_banks")) {
             $data['pl_banks_enabled'] = true;
         }
 
-        if ($this->getOption("eu_banks")){
+        if ($this->getOption("eu_banks")) {
             $data['eu_banks_enabled'] = true;
         }
 
         $this->context->smarty->assign($data);
 
-        $newOption = new PaymentOption();
+        $newOption = null;
+        $newOption2 = null;
 
         if ($this->getOption("eu_banks")) {
             $newOption = new PaymentOption();
             $newOption->setModuleName($this->name)
                 ->setCallToActionText($this->l('Pay by bank wire'))
-                ->setAction($this->context->link->getModuleLink($this->name, 'redirect', ['id_cart' => (int)$params['cart']->id], true))
-                ->setAdditionalInformation($this->context->smarty->fetch('module:fondy_banking/fondy_banking.tpl'));
+                ->setAction(
+                    $this->context->link->getModuleLink(
+                        $this->name,
+                        'redirect',
+                        array('id_cart' => (int)$params['cart']->id),
+                        true
+                    )
+                )
+                ->setAdditionalInformation($this->context->smarty->fetch('module:fondy_banking/views/templates/front/fondy_banking.tpl'));
         }
         if ($this->getOption("pl_banks")) {
             $newOption2 = new PaymentOption();
             $newOption2->setModuleName($this->name)
                 ->setCallToActionText($this->l('Fondy PL banklinks'))
-                ->setAction($this->context->link->getModuleLink($this->name, 'redirect',
-                    ['id_cart' => (int)$params['cart']->id, 'pl_banks_enabled' => true], true))
-                ->setAdditionalInformation($this->context->smarty->fetch('module:fondy_banking/fondy_banking_pl.tpl'));
+                ->setAction(
+                    $this->context->link->getModuleLink(
+                        $this->name,
+                        'redirect',
+                        array('id_cart' => (int)$params['cart']->id, 'pl_banks_enabled' => true),
+                        true
+                    )
+                )
+                ->setAdditionalInformation($this->context->smarty->fetch('module:fondy_banking/views/templates/front/fondy_banking_pl.tpl'));
         }
-        return [$newOption, $newOption2];
+        return array($newOption, $newOption2);
     }
 
     private function _checkCurrency($cart)
@@ -198,7 +224,7 @@ class fondy_banking extends PaymentModule
         $currencies_module = $this->getCurrency((int)$cart->id_currency);
 
         if (is_array($currencies_module)) {
-            foreach ($currencies_module AS $currency_module) {
+            foreach ($currencies_module as $currency_module) {
                 if ($currency_order->id == $currency_module['id_currency']) {
                     return true;
                 }

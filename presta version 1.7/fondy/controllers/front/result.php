@@ -1,24 +1,35 @@
 <?php
+/**
+ * 2014-2019 Fondy
+ *
+ * @author DM
+ * @copyright  2014-2019 Fondy
+ * @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ * @version    1.0.0
+ */
 
-require_once(dirname(__FILE__).'../../../fondy.php');
-require_once(dirname(__FILE__).'../../../fondy.cls.php');
+require_once(dirname(__FILE__) . '../../../fondy.php');
+require_once(dirname(__FILE__) . '../../../fondy.cls.php');
 
-class FondyResultModuleFrontController extends ModuleFrontController {
+class FondyResultModuleFrontController extends ModuleFrontController
+{
     /**
      * @see FrontController::postProcess()
      */
-    public function postProcess() {
-
+    public function postProcess()
+    {
         $fondy = new Fondy();
 
-        if ($_POST['order_status'] == FondyCls::ORDER_DECLINED) {
+        if (Tools::getValue('order_status') == FondyCls::ORDER_DECLINED) {
             $this->errors[] = Tools::displayError('Order declined');
         }
-		if ($_POST['order_status'] == 'processing') {
+        if (Tools::getValue('order_status') == 'processing') {
             $this->errors[] = Tools::displayError('Payment proccesing');
-		}
-		
-		
+        }
+        if (Tools::getValue('order_status') == 'expired') {
+            $this->errors[] = Tools::displayError('Order expired');
+        }
+
         $settings = array(
             'merchant_id' => $fondy->getOption('merchant'),
             'secret_key' => $fondy->getOption('secret_key')
@@ -41,8 +52,7 @@ class FondyResultModuleFrontController extends ModuleFrontController {
         }
 
         if (empty($this->errors)) {
-
-            list($orderId,) = explode(FondyCls::ORDER_SEPARATOR, $_POST['order_id']);
+            list($orderId,) = explode(FondyCls::ORDER_SEPARATOR, Tools::getValue('order_id'));
             $history = new OrderHistory();
             $history->id_order = $orderId;
             $history->changeIdOrderState((int)Configuration::get('PS_OS_PAYMENT'), $orderId);

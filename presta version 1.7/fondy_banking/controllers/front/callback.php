@@ -1,9 +1,17 @@
 <?php
+/**
+ * 2014-2019 Fondy
+ *
+ * @author DM
+ * @copyright  2014-2019 Fondy
+ * @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ * @version    1.0.0
+ */
 
-require_once(dirname(__FILE__) . '../../../fondy_banking.php');
+require_once(dirname(__FILE__) . '../../../fondy.php');
 require_once(dirname(__FILE__) . '../../../fondy.cls.php');
 
-class fondy_bankingCallbackModuleFrontController extends ModuleFrontController
+class FondyCallbackModuleFrontController extends ModuleFrontController
 {
     public $display_column_left = false;
     public $display_column_right = false;
@@ -16,18 +24,20 @@ class fondy_bankingCallbackModuleFrontController extends ModuleFrontController
      */
     public function postProcess()
     {
-        if (empty($_POST)) {
-            $callback = json_decode(file_get_contents("php://input"));
-            if (empty($callback))
+        $data = $_POST;
+        if (empty($data)) {
+            $fap = json_decode(Tools::file_get_contents("php://input"));
+            if (empty($fap)) {
                 die('Bad request');
-            $_POST = array();
-            foreach ($callback as $key => $val) {
-                $_POST[$key] = $val;
+            }
+            $data = array();
+            foreach ($fap as $key => $val) {
+                $data[$key] = $val;
             }
         }
         try {
-            if ($_POST['order_status'] == FondyCls::ORDER_DECLINED or $_POST['order_status'] == FondyCls::ORDER_EXPIRED) {
-                list($orderId,) = explode(FondyCls::ORDER_SEPARATOR, $_POST['order_id']);
+            if ($data['order_status'] == FondyCls::ORDER_DECLINED or $data['order_status'] == FondyCls::ORDER_EXPIRED) {
+                list($orderId,) = explode(FondyCls::ORDER_SEPARATOR, $data['order_id']);
                 $history = new OrderHistory();
                 $history->id_order = $orderId;
                 $history->changeIdOrderState((int)Configuration::get('PS_OS_ERROR'), $orderId);
@@ -37,13 +47,13 @@ class fondy_bankingCallbackModuleFrontController extends ModuleFrontController
                 exit('Order declined');
             }
 
-            $fondy = new fondy_banking();
+            $fondy = new Fondy();
             $settings = array(
                 'merchant_id' => $fondy->getOption('merchant'),
                 'secret_key' => $fondy->getOption('secret_key')
             );
 
-            list($orderId,) = explode(FondyCls::ORDER_SEPARATOR, $_POST['order_id']);
+            list($orderId,) = explode(FondyCls::ORDER_SEPARATOR, $data['order_id']);
             $order = new Order($orderId);
 
             if ((int)$order->getCurrentState() == (int)Configuration::get('PS_OS_PAYMENT')) {
@@ -59,7 +69,7 @@ class fondy_bankingCallbackModuleFrontController extends ModuleFrontController
                 die('State is already Paid');
             }
 
-            $isPaymentValid = FondyCls::isPaymentValid($settings, $_POST);
+            $isPaymentValid = FondyCls::isPaymentValid($settings, $data);
             if ($isPaymentValid !== true) {
                 exit($isPaymentValid);
             } else {

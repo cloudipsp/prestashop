@@ -1,32 +1,41 @@
 <?php
-require_once(dirname(__FILE__).'../../../fondy.php');
-require_once(dirname(__FILE__).'../../../fondy.cls.php');
+/**
+ * 2014-2019 Fondy
+ *
+ * @author DM
+ * @copyright  2014-2019 Fondy
+ * @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ * @version    1.0.0
+ */
+
+require_once(dirname(__FILE__) . '../../../fondy.php');
+require_once(dirname(__FILE__) . '../../../fondy.cls.php');
 
 class FondyRedirectModuleFrontController extends ModuleFrontController
 {
-	public $ssl = true;
+    public $ssl = true;
 
-	/**
-	 * @see FrontController::initContent()
-	 */
-	public function initContent()
-	{
-		
-		parent::initContent();
+    /**
+     * @see FrontController::initContent()
+     */
+    public function initContent()
+    {
+        parent::initContent();
 
-        global $cookie, $link;
+        $cookie = $this->context->cookie;
+        $link = $this->context->link;
 
-        $language = Language::getIsoById(intval($cookie->id_lang));
+        $language = Language::getIsoById((int)$cookie->id_lang);
         $language = (!in_array($language, array('ua', 'en', 'ru', 'lv', 'fr'))) ? '' : $language;
-		
+
         $payCurrency = Context::getContext()->currency;
         $cart = $this->context->cart;
 
-		$fondy = new Fondy();
-		$total = $cart->getOrderTotal();
-		
-		$fondy->validateOrder(intval($cart->id), _PS_OS_PREPARATION_, $total, $fondy->displayName);
-		
+        $fondy = $this->module;
+        $total = $cart->getOrderTotal();
+
+        $fondy->validateOrder((int)$cart->id, _PS_OS_PREPARATION_, $total, $fondy->displayName);
+
         $fields = array(
             'order_id' => $fondy->currentOrder . FondyCls::ORDER_SEPARATOR . time(),
             'merchant_id' => $fondy->getOption('merchant'),
@@ -37,13 +46,14 @@ class FondyRedirectModuleFrontController extends ModuleFrontController
             'response_url' => $link->getModuleLink('fondy', 'result'),
             'sender_email' => $this->context->customer->email
         );
-		if ($language !== '')
-            $fields['lang'] = strtolower($language);
+        if ($language !== '') {
+            $fields['lang'] = Tools::strtolower($language);
+        }
         $fields['signature'] = FondyCls::getSignature($fields, $fondy->getOption('secret_key'));
         $fields['fondy_url'] = FondyCls::URL;
 
-		$this->context->smarty->assign($fields);
+        $this->context->smarty->assign($fields);
 
-		$this->setTemplate('module:' . $this->module->name . '/views/templates/front/redirect.tpl');
-	}
+        $this->setTemplate('module:' . $this->module->name . '/views/templates/front/redirect.tpl');
+    }
 }

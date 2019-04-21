@@ -1,5 +1,6 @@
-{*
-* 2007-2012 PrestaShop
+<?php
+/*
+* 2007-2015 PrestaShop
 *
 * NOTICE OF LICENSE
 *
@@ -18,14 +19,17 @@
 * needs please refer to http://www.prestashop.com for more information.
 *
 *  @author PrestaShop SA <contact@prestashop.com>
-*  @copyright  2007-2012 PrestaShop SA
-*  @version  Release: $Revision: 14011 $
+*  @copyright  2007-2015 PrestaShop SA
 *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
-*}
-
-<p class="payment_module">
-        <img src="{$this_path nofilter}img/logo.png" rel='fondy' width="90" height="32"/><br/>
-        {$this_description nofilter}
-    </a>
-</p>
+*/
+				    	
+header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+header("Last-Modified: ".gmdate("D, d M Y H:i:s")." GMT");
+						
+header("Cache-Control: no-store, no-cache, must-revalidate");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
+						
+header("Location: ../");
+exit;
