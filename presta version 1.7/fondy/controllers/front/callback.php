@@ -28,6 +28,7 @@ class FondyCallbackModuleFrontController extends ModuleFrontController
      */
     public function postProcess()
     {
+        $data = array();
         foreach ($_POST as $key => $val) {
             $data[$key] = Tools::getValue($key);
         }
@@ -36,11 +37,7 @@ class FondyCallbackModuleFrontController extends ModuleFrontController
             if (empty($json_callback)) {
                 exit('No request.');
             }
-            $data = array();
             foreach ($json_callback as $key => $val) {
-                if (is_string($val)) {
-                    $val = urldecode(preg_replace('/((\%5C0+)|(\%00+))/i', '', urlencode($val)));
-                }
                 $data[$key] = $val;
             }
         }

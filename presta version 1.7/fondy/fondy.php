@@ -21,7 +21,7 @@ class Fondy extends PaymentModule
         'FONDY_SECRET_KEY',
         'FONDY_BACK_REF'
     );
-    private $_postErrors = array();
+    private $postErrors = array();
 
     public function __construct()
     {
@@ -35,7 +35,10 @@ class Fondy extends PaymentModule
 
         parent::__construct();
         $this->displayName = $this->l('Fondy Payments');
-        $this->description = $this->l('Fondy is a payment platform whose main function is to provide internet acquiring. Payment gateway supports EUR, USD, PLN, GBP, UAH, RUB and +100 other currencies.');
+        $this->description = $this->l(
+            'Fondy is a payment platform whose main function is to provide internet acquiring. 
+            Payment gateway supports EUR, USD, PLN, GBP, UAH, RUB and +100 other currencies.'
+        );
         $this->confirmUninstall = $this->l('Are you want to remove the module?');
     }
 
@@ -73,11 +76,11 @@ class Fondy extends PaymentModule
          */
         $err = '';
         if (((bool)Tools::isSubmit('submitFondyModule')) == true) {
-            $this->_postValidation();
-            if (!sizeof($this->_postErrors)) {
+            $this->postValidation();
+            if (!sizeof($this->postErrors)) {
                 $this->postProcess();
             } else {
-                foreach ($this->_postErrors as $err) {
+                foreach ($this->postErrors as $err) {
                     $err .= $this->displayError($err);
                 }
             }
@@ -174,14 +177,14 @@ class Fondy extends PaymentModule
     }
 
 
-    private function _postValidation()
+    private function postValidation()
     {
         if (Tools::isSubmit('submitFondyModule')) {
             if (empty(Tools::getValue('FONDY_MERCHANT'))) {
-                $this->_postErrors[] = $this->l('Merchant ID is required.');
+                $this->postErrors[] = $this->l('Merchant ID is required.');
             }
             if (empty(Tools::getValue('FONDY_SECRET_KEY'))) {
-                $this->_postErrors[] = $this->l('Secret key is required.');
+                $this->postErrors[] = $this->l('Secret key is required.');
             }
         }
     }
@@ -193,7 +196,7 @@ class Fondy extends PaymentModule
         if (!$this->active) {
             return false;
         }
-        if (!$this->_checkCurrency($params['cart'])) {
+        if (!$this->checkCurrency($params['cart'])) {
             return false;
         }
 
@@ -222,7 +225,7 @@ class Fondy extends PaymentModule
         return array($newOption);
     }
 
-    private function _checkCurrency($cart)
+    private function checkCurrency($cart)
     {
         $currency_order = new Currency((int)($cart->id_currency));
         $currencies_module = $this->getCurrency((int)$cart->id_currency);

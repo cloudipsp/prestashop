@@ -20,7 +20,7 @@ class fondy_banking extends PaymentModule
         'FONDY_BANKING_REF',
     );
     private $_html = '';
-    private $_postErrors = array();
+    private $postErrors = array();
 
     public function __construct()
     {
@@ -107,10 +107,10 @@ class fondy_banking extends PaymentModule
 
         if (Tools::isSubmit('btnSubmit')) {
             $this->_postValidation();
-            if (!sizeof($this->_postErrors)) {
+            if (!sizeof($this->postErrors)) {
                 $this->_postProcess();
             } else {
-                foreach ($this->_postErrors as $err) {
+                foreach ($this->postErrors as $err) {
                     $this->_html .= '<div class="bootstrap">
 										<div class="module_error alert alert-danger">
 										<button type="button" class="close" data-dismiss="alert">×</button>' . $err . '</div></div>';
@@ -129,10 +129,10 @@ class fondy_banking extends PaymentModule
     {
         if (Tools::isSubmit('btnSubmit')) {
             if (empty(Tools::getValue('merchant'))) {
-                $this->_postErrors[] = $this->l('Merchant ID is required.');
+                $this->postErrors[] = $this->l('Merchant ID is required.');
             }
             if (empty(Tools::getValue('secret_key'))) {
-                $this->_postErrors[] = $this->l('Secret key is required.');
+                $this->postErrors[] = $this->l('Secret key is required.');
             }
         }
     }
