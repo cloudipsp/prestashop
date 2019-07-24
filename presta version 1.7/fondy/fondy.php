@@ -10,6 +10,10 @@
 
 use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class Fondy extends PaymentModule
 {
     private $settingsList = array(
@@ -27,6 +31,7 @@ class Fondy extends PaymentModule
         $this->author = 'Fondy';
         $this->bootstrap = true;
         $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
+        $this->is_eu_compatible = 1;
 
         parent::__construct();
         $this->displayName = $this->l('Fondy Payments');

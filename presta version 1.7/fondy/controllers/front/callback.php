@@ -2,14 +2,18 @@
 /**
  * 2014-2019 Fondy
  *
- *  @author DM
- *  @copyright  2014-2019 Fondy
- *  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
- *  @version    1.0.0
+ * @author DM
+ * @copyright  2014-2019 Fondy
+ * @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ * @version    1.0.0
  */
 
 require_once(dirname(__FILE__) . '../../../fondy.php');
 require_once(dirname(__FILE__) . '../../../fondy.cls.php');
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
 
 class FondyCallbackModuleFrontController extends ModuleFrontController
 {
@@ -24,14 +28,19 @@ class FondyCallbackModuleFrontController extends ModuleFrontController
      */
     public function postProcess()
     {
-        $data = $_POST;
+        foreach ($_POST as $key => $val) {
+            $data[$key] = Tools::getValue($key);
+        }
         if (empty($data)) {
-            $fap = json_decode(Tools::file_get_contents("php://input"));
-            if (empty($fap)) {
-                die('Bad request');
+            $json_callback = json_decode(Tools::file_get_contents("php://input"));
+            if (empty($json_callback)) {
+                exit('No request.');
             }
             $data = array();
-            foreach ($fap as $key => $val) {
+            foreach ($json_callback as $key => $val) {
+                if (is_string($val)) {
+                    $val = urldecode(preg_replace('/((\%5C0+)|(\%00+))/i', '', urlencode($val)));
+                }
                 $data[$key] = $val;
             }
         }
@@ -44,7 +53,7 @@ class FondyCallbackModuleFrontController extends ModuleFrontController
                 $history->addWithemail(true, array(
                     'order_name' => $orderId
                 ));
-                exit('Order declined');
+                throw new Exception('Order declined');
             }
 
             $fondy = new Fondy();
@@ -66,12 +75,12 @@ class FondyCallbackModuleFrontController extends ModuleFrontController
                     ),
                     3
                 );
-                die('State is already Paid');
+                throw new Exception('State is already Paid');
             }
 
             $isPaymentValid = FondyCls::isPaymentValid($settings, $data);
             if ($isPaymentValid !== true) {
-                exit($isPaymentValid);
+                throw new Exception($isPaymentValid);
             } else {
                 $history = new OrderHistory();
                 $history->id_order = $orderId;
@@ -82,7 +91,7 @@ class FondyCallbackModuleFrontController extends ModuleFrontController
                 exit('OK');
             }
         } catch (Exception $e) {
-            exit(get_class($e) . ': ' . $e->getMessage());
+            exit($e->getMessage());
         }
     }
 }

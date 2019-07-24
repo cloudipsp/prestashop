@@ -11,6 +11,10 @@
 require_once(dirname(__FILE__) . '../../../fondy_banking.php');
 require_once(dirname(__FILE__) . '../../../fondy.cls.php');
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class fondy_bankingRedirectModuleFrontController extends ModuleFrontController
 {
     public $ssl = true;
