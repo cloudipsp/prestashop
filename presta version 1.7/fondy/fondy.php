@@ -32,6 +32,7 @@ class Fondy extends PaymentModule
         $this->bootstrap = true;
         $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
         $this->is_eu_compatible = 1;
+        $this->module_key = '180016d5b53f11d0d2833a98e137d9f0';
 
         parent::__construct();
         $this->displayName = $this->l('Fondy Payments');
@@ -80,8 +81,8 @@ class Fondy extends PaymentModule
             if (!sizeof($this->postErrors)) {
                 $this->postProcess();
             } else {
-                foreach ($this->postErrors as $err) {
-                    $err .= $this->displayError($err);
+                foreach ($this->postErrors as $error) {
+                    $err .= $this->displayError($error);
                 }
             }
         }
@@ -180,11 +181,19 @@ class Fondy extends PaymentModule
     private function postValidation()
     {
         if (Tools::isSubmit('submitFondyModule')) {
-            if (empty(Tools::getValue('FONDY_MERCHANT'))) {
+            $merchant_id = Tools::getValue('FONDY_MERCHANT');
+            $secret_key = Tools::getValue('FONDY_SECRET_KEY');
+            if (empty($merchant_id)) {
                 $this->postErrors[] = $this->l('Merchant ID is required.');
             }
-            if (empty(Tools::getValue('FONDY_SECRET_KEY'))) {
+            if (!is_numeric($merchant_id)) {
+                $this->postErrors[] = $this->l('Merchant ID must be numeric.');
+            }
+            if (empty($secret_key)) {
                 $this->postErrors[] = $this->l('Secret key is required.');
+            }
+            if (Tools::strlen($secret_key) < 10 or is_numeric($secret_key)) {
+                $this->postErrors[] = $this->l('Secret key is invalid.');
             }
         }
     }

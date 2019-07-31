@@ -22,8 +22,6 @@ class FondyResultModuleFrontController extends ModuleFrontController
      */
     public function postProcess()
     {
-        $fondy = new Fondy();
-
         if (Tools::getValue('order_status') == FondyCls::ORDER_DECLINED) {
             $this->errors[] = Tools::displayError('Order declined');
         }
@@ -32,16 +30,6 @@ class FondyResultModuleFrontController extends ModuleFrontController
         }
         if (Tools::getValue('order_status') == 'expired') {
             $this->errors[] = Tools::displayError('Order expired');
-        }
-
-        $settings = array(
-            'merchant_id' => $fondy->getOption('merchant'),
-            'secret_key' => $fondy->getOption('secret_key')
-        );
-
-        $isPaymentValid = FondyCls::isPaymentValid($settings, $_POST);
-        if ($isPaymentValid !== true) {
-            $this->errors[] = Tools::displayError($isPaymentValid);
         }
 
         $cart = $this->context->cart;
@@ -57,20 +45,14 @@ class FondyResultModuleFrontController extends ModuleFrontController
         }
 
         if (empty($this->errors)) {
-            list($orderId,) = explode(FondyCls::ORDER_SEPARATOR, Tools::getValue('order_id'));
-            $history = new OrderHistory();
-            $history->id_order = $orderId;
-            $history->changeIdOrderState((int)Configuration::get('PS_OS_PAYMENT'), $orderId);
-            $history->addWithemail(true, array(
-                'order_name' => $orderId
-            ));
-
             Tools::redirect(
                 'index.php?controller=order-confirmation&id_cart=' . $cart->id .
                 '&id_module=' . $this->module->id .
                 '&id_order=' . $this->module->currentOrder .
                 '&key=' . $customer->secure_key
             );
+        } else {
+            $this->redirectWithNotifications('index.php?controller=order');
         }
     }
 }
