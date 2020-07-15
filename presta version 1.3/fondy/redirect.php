@@ -20,7 +20,7 @@ class FondyRedirectModuleFrontController
         $customer = new Customer((int)$cart->id_customer);
 
         $language = Language::getIsoById(intval($cookie->id_lang));
-        $language = (!in_array($language, array('ua', 'en', 'ru', 'lv', 'fr'))) ? '' : $language;
+        $language = (!in_array($language, array('uk', 'en', 'ru', 'lv', 'fr'))) ? '' : $language;
 
         $currency = new Currency($cookie->id_currency);
 

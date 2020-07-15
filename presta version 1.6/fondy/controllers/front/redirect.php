@@ -26,7 +26,7 @@ class FondyRedirectModuleFrontController extends ModuleFrontController
         $link = $this->context->link;
 
         $language = Language::getIsoById((int)$cookie->id_lang);
-        $language = (!in_array($language, array('ua', 'en', 'ru', 'lv', 'fr'))) ? '' : $language;
+        $language = (!in_array($language, array('uk', 'en', 'ru', 'lv', 'fr'))) ? '' : $language;
 
         $payCurrency = $this->context->currency;
         $cart = $this->context->cart;
