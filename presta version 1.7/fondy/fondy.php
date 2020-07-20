@@ -46,7 +46,7 @@ class Fondy extends PaymentModule
     public function install()
     {
         return parent::install()
-            && $this->registerHook('paymentOptions');
+               && $this->registerHook('paymentOptions');
     }
 
     public function uninstall()
@@ -106,7 +106,7 @@ class Fondy extends PaymentModule
         $helper->identifier = $this->identifier;
         $helper->submit_action = 'submitFondyModule';
         $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false)
-            . '&configure=' . $this->name . '&tab_module=' . $this->tab . '&module_name=' . $this->name;
+                                . '&configure=' . $this->name . '&tab_module=' . $this->tab . '&module_name=' . $this->name;
         $helper->token = Tools::getAdminTokenLite('AdminModules');
 
         $helper->tpl_vars = array(
@@ -123,6 +123,16 @@ class Fondy extends PaymentModule
      */
     protected function getConfigForm()
     {
+        global $cookie;
+
+        $options = [];
+
+        foreach (OrderState::getOrderStates($cookie->id_lang) as $state) {  // getting all Prestashop statuses
+            if (empty($state['module_name'])) {
+                $options[] = ['status_id' => $state['id_order_state'], 'name' => $state['name'] . " [ID: $state[id_order_state]]"];
+            }
+        }
+
         return array(
             'form' => array(
                 'legend' => array(
@@ -146,6 +156,18 @@ class Fondy extends PaymentModule
                         'desc' => $this->l('Enter a secret key'),
                         'label' => $this->l('Secret key'),
                     ),
+                    array(
+                        'type' => 'select',
+                        'prefix' => '<i class="icon icon-key"></i>',
+                        'name' => 'FONDY_SUCCESS_STATUS_ID',
+                        'desc' => $this->l('Enter a secret key'),
+                        'label' => $this->l('Status after success payment'),
+                        'options' => array(
+                            'query' => $options,
+                            'id' => 'status_id',
+                            'name' => 'name'
+                        )
+                    ),
                 ),
                 'submit' => array(
                     'title' => $this->l('Save'),
@@ -163,6 +185,7 @@ class Fondy extends PaymentModule
         return array(
             'FONDY_MERCHANT' => Configuration::get('FONDY_MERCHANT', null),
             'FONDY_SECRET_KEY' => Configuration::get('FONDY_SECRET_KEY', null),
+            'FONDY_SUCCESS_STATUS_ID' => Configuration::get('FONDY_SUCCESS_STATUS_ID', null),
         );
     }
 
@@ -210,26 +233,26 @@ class Fondy extends PaymentModule
         }
 
         $this->context->smarty->assign(array(
-            'this_path' => $this->_path,
-            'id' => (int)$params['cart']->id,
-            'this_path_ssl' => Tools::getShopDomainSsl(true, true) . __PS_BASE_URI__ . 'modules/' . $this->name . '/',
-            'this_description' => $this->l('Pay via payment system Fondy')
-        ));
+                                           'this_path' => $this->_path,
+                                           'id' => (int)$params['cart']->id,
+                                           'this_path_ssl' => Tools::getShopDomainSsl(true, true) . __PS_BASE_URI__ . 'modules/' . $this->name . '/',
+                                           'this_description' => $this->l('Pay via payment system Fondy')
+                                       ));
 
         $newOption = new PaymentOption();
         $newOption->setModuleName($this->name)
-            ->setCallToActionText($this->l('Pay via Fondy'))
-            ->setAction(
-                $this->context->link->getModuleLink(
-                    $this->name,
-                    'redirect',
-                    array('id_cart' => (int)$params['cart']->id),
-                    true
-                )
-            )
-            ->setAdditionalInformation(
-                $this->context->smarty->fetch('module:fondy/views/templates/front/fondy.tpl')
-            );
+                  ->setCallToActionText($this->l('Pay via Fondy'))
+                  ->setAction(
+                      $this->context->link->getModuleLink(
+                          $this->name,
+                          'redirect',
+                          array('id_cart' => (int)$params['cart']->id),
+                          true
+                      )
+                  )
+                  ->setAdditionalInformation(
+                      $this->context->smarty->fetch('module:fondy/views/templates/front/fondy.tpl')
+                  );
 
         return array($newOption);
     }

@@ -81,7 +81,7 @@ class FondyCallbackModuleFrontController extends ModuleFrontController
             } else {
                 $history = new OrderHistory();
                 $history->id_order = $orderId;
-                $history->changeIdOrderState((int)Configuration::get('PS_OS_PAYMENT'), $orderId);
+                $history->changeIdOrderState((int) Configuration::get('FONDY_SUCCESS_STATUS_ID', Configuration::get('PS_OS_PAYMENT')), $orderId);
                 $history->addWithemail(true, array(
                     'order_name' => $orderId
                 ));
