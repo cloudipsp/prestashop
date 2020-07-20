@@ -116,6 +116,16 @@ class Fondy extends PaymentModule
      */
     protected function getConfigForm()
     {
+        global $cookie;
+
+        $options = [];
+
+        foreach (OrderState::getOrderStates($cookie->id_lang) as $state) {  // getting all Prestashop statuses
+            if (empty($state['module_name'])) {
+                $options[] = ['status_id' => $state['id_order_state'], 'name' => $state['name'] . " [ID: $state[id_order_state]]"];
+            }
+        }
+
         return array(
             'form' => array(
                 'legend' => array(
@@ -138,6 +148,18 @@ class Fondy extends PaymentModule
                         'name' => 'FONDY_SECRET_KEY',
                         'desc' => $this->l('Enter a secret key'),
                         'label' => $this->l('Secret key'),
+                    ),
+                    array(
+                        'type' => 'select',
+                        'prefix' => '<i class="icon icon-key"></i>',
+                        'name' => 'FONDY_SUCCESS_STATUS_ID',
+                        'desc' => $this->l('Enter a secret key'),
+                        'label' => $this->l('Status after success payment'),
+                        'options' => array(
+                            'query' => $options,
+                            'id' => 'status_id',
+                            'name' => 'name'
+                        )
                     ),
                     array(
                         'col' => 4,
@@ -176,6 +198,7 @@ class Fondy extends PaymentModule
             'FONDY_MERCHANT' => Configuration::get('FONDY_MERCHANT', null),
             'FONDY_SECRET_KEY' => Configuration::get('FONDY_SECRET_KEY', null),
             'FONDY_FORM_METHOD' => Configuration::get('FONDY_FORM_METHOD', null),
+            'FONDY_SUCCESS_STATUS_ID' => Configuration::get('FONDY_SUCCESS_STATUS_ID', null),
         );
     }
 
