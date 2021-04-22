@@ -102,5 +102,3 @@ class FondyCallbackModuleFrontController extends ModuleFrontController
         }
     }
 }
-
-

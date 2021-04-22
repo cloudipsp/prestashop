@@ -59,3 +59,4 @@ class FondyRedirectModuleFrontController extends ModuleFrontController
         $this->setTemplate('module:' . $this->module->name . '/views/templates/front/redirect.tpl');
     }
 }
+
