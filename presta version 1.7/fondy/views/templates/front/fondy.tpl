@@ -8,7 +8,6 @@
 *}
 
 <p class="payment_module">
-        <img src="{$this_path|escape:'htmlall'}views/img/logo.png" rel='fondy' width="90" height="32"/><br/>
+        <img src="{$this_path|escape:'htmlall'}views/img/logo.png" rel='fondy' width="150" height="50" alt="fondy logo"/><br/>
         {$this_description|escape:'htmlall'}
-    </a>
 </p>

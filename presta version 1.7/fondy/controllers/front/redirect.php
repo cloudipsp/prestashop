@@ -38,12 +38,10 @@ class FondyRedirectModuleFrontController extends ModuleFrontController
         $fondy = $this->module;
         $total = $cart->getOrderTotal();
 
-        $fondy->validateOrder((int)$cart->id, _PS_OS_PREPARATION_, $total, $fondy->displayName);
-
         $fields = array(
-            'order_id' => $fondy->currentOrder . FondyCls::ORDER_SEPARATOR . time(),
+            'order_id' => $cart->id . FondyCls::ORDER_SEPARATOR . time(),
             'merchant_id' => $fondy->getOption('merchant'),
-            'order_desc' => $this->l('Order pay №') . $fondy->currentOrder,
+            'order_desc' => $this->l('Cart pay №') . $cart->id,
             'amount' => round($total * 100),
             'currency' => $payCurrency->iso_code,
             'server_callback_url' => $link->getModuleLink('fondy', 'callback'),

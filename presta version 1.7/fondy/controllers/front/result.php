@@ -32,7 +32,14 @@ class FondyResultModuleFrontController extends ModuleFrontController
             $this->errors[] = Tools::displayError('Order expired');
         }
 
+        list($cartID,) = explode(FondyCls::ORDER_SEPARATOR, $_POST['order_id']);
+        $this->context->cart = new Cart((int) $cartID);
         $cart = $this->context->cart;
+
+        if ($this->context->cart->OrderExists() == false){
+            $total = $cart->getOrderTotal();
+            $this->module->validateOrder((int)$cart->id, _PS_OS_PREPARATION_, $total, $this->module->displayName, null, ['transaction_id' => $_POST['payment_id']]);
+        }
 
         if ($cart->id_customer == 0 || $cart->id_address_delivery == 0 || $cart->id_address_invoice == 0
             || !$this->module->active) {
@@ -46,7 +53,7 @@ class FondyResultModuleFrontController extends ModuleFrontController
 
         if (empty($this->errors)) {
             Tools::redirect(
-                'index.php?controller=order-confirmation&id_cart=' . $cart->id .
+                'index.php?controller=order-confirmation&id_cart=' . $this->context->cart->id .
                 '&id_module=' . $this->module->id .
                 '&id_order=' . $this->module->currentOrder .
                 '&key=' . $customer->secure_key

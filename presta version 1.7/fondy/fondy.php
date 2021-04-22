@@ -19,7 +19,9 @@ class Fondy extends PaymentModule
     private $settingsList = array(
         'FONDY_MERCHANT',
         'FONDY_SECRET_KEY',
-        'FONDY_BACK_REF'
+        'FONDY_BACK_REF',
+        'FONDY_SUCCESS_STATUS_ID',
+        'FONDY_SHOW_CARDS_LOGO'
     );
     private $postErrors = array();
 
@@ -27,7 +29,7 @@ class Fondy extends PaymentModule
     {
         $this->name = 'fondy';
         $this->tab = 'payments_gateways';
-        $this->version = '1.0.0';
+        $this->version = '1.1.0';
         $this->author = 'Fondy';
         $this->bootstrap = true;
         $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
@@ -160,13 +162,32 @@ class Fondy extends PaymentModule
                         'type' => 'select',
                         'prefix' => '<i class="icon icon-key"></i>',
                         'name' => 'FONDY_SUCCESS_STATUS_ID',
-                        'desc' => $this->l('Enter a secret key'),
+//                        'desc' => $this->l(),
                         'label' => $this->l('Status after success payment'),
                         'options' => array(
                             'query' => $options,
                             'id' => 'status_id',
                             'name' => 'name'
                         )
+                    ),
+                    array(
+                        'type' => 'radio',
+                        'label' => $this->l('Show Visa/MasterCard logo'),
+//                        'desc'      => $this->l(),
+                        'name' => 'FONDY_SHOW_CARDS_LOGO',
+                        'is_bool' => true,
+                        'values' => array(
+                            array(
+                                'id' => 'show_cards',
+                                'value' => 1,
+                                'label' => $this->l('Yes')
+                            ),
+                            array(
+                                'id' => 'hide_cards',
+                                'value' => 0,
+                                'label' => $this->l('No')
+                            )
+                        ),
                     ),
                 ),
                 'submit' => array(
@@ -186,6 +207,7 @@ class Fondy extends PaymentModule
             'FONDY_MERCHANT' => Configuration::get('FONDY_MERCHANT', null),
             'FONDY_SECRET_KEY' => Configuration::get('FONDY_SECRET_KEY', null),
             'FONDY_SUCCESS_STATUS_ID' => Configuration::get('FONDY_SUCCESS_STATUS_ID', null),
+            'FONDY_SHOW_CARDS_LOGO' => Configuration::get('FONDY_SHOW_CARDS_LOGO', null),
         );
     }
 
@@ -253,6 +275,10 @@ class Fondy extends PaymentModule
                   ->setAdditionalInformation(
                       $this->context->smarty->fetch('module:fondy/views/templates/front/fondy.tpl')
                   );
+
+        if ($this->getOption('SHOW_CARDS_LOGO')){
+            $newOption->setLogo(Tools::getHttpHost(true) .$this->_path.'views/img/fondy_logo_cards.svg');
+        }
 
         return array($newOption);
     }
