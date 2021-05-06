@@ -23,7 +23,7 @@ class Fondy extends PaymentModule
     {
         $this->name = 'fondy';
         $this->tab = 'payments_gateways';
-        $this->version = '1.0.0';
+        $this->version = '1.0.1';
         $this->author = 'DM';
         $this->bootstrap = true;
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => _PS_VERSION_);

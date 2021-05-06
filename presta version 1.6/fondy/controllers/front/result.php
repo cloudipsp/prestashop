@@ -54,14 +54,21 @@ class FondyResultModuleFrontController extends ModuleFrontController
 
         if (empty($this->errors)) {
             list($orderId,) = explode(FondyCls::ORDER_SEPARATOR, Tools::getValue('order_id'));
+            $order = new Order($orderId);
             $history = new OrderHistory();
-            $history->id_order = $orderId;
+
+            $history->id_order = $order->id;
             $history->changeIdOrderState((int)Configuration::get('PS_OS_PAYMENT'), $orderId);
             $history->addWithemail(true, array(
                 'order_name' => $orderId
             ));
 
-            Tools::redirect('index.php?controller=order-confirmation&id_cart=' . $cart->id . '&id_module=' . $this->module->id . '&id_order=' . $this->module->currentOrder . '&key=' . $customer->secure_key);
+            Tools::redirect(
+            'index.php?controller=order-confirmation&id_cart=' . $order->id_cart .
+                '&id_module=' . $this->module->id .
+                '&id_order=' . $order->id .
+                '&key=' . $customer->secure_key
+            );
         }
     }
 }

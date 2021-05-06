@@ -50,7 +50,7 @@ class FondyCallbackModuleFrontController extends ModuleFrontController
 
             $fondy = new Fondy();
             list($orderId,) = explode(FondyCls::ORDER_SEPARATOR, $data['order_id']);
-            $order = new Order(Order::getOrderByCartId($orderId));
+            $order = new Order($orderId);
             $settings = array(
                 'merchant_id' => $fondy->getOption('merchant'),
                 'secret_key' => $fondy->getOption('secret_key')

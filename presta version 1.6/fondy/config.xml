@@ -2,7 +2,7 @@
 <module>
 	<name>fondy</name>
 	<displayName><![CDATA[Платежи Fondy]]></displayName>
-	<version><![CDATA[1.0.0]]></version>
+	<version><![CDATA[1.0.1]]></version>
 	<description><![CDATA[Оплата через Fondy]]></description>
 	<author><![CDATA[Fondy]]></author>
 	<tab><![CDATA[payments_gateways]]></tab>
