@@ -5,11 +5,12 @@
  * @author DM
  * @copyright  2014-2019 Fondy
  * @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
- * @version    1.0.0
+ * @version    1.2.0
  */
 
 require_once(dirname(__FILE__) . '../../../fondy.php');
-require_once(dirname(__FILE__) . '../../../fondy.cls.php');
+require_once(dirname(__FILE__) . '../../../classes/fondy.cls.php');
+require_once(dirname(__FILE__) . '../../../classes/FondyOrder.php');
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -45,6 +46,11 @@ class FondyCallbackModuleFrontController extends ModuleFrontController
             list($cartID,) = explode(FondyCls::ORDER_SEPARATOR, $requestBody['order_id']);
             $this->context->cart = new Cart((int) $cartID);
 
+            $fOrder = FondyOrder::getOrderById($requestBody['order_id']);
+            $fOrder->status = $requestBody['order_status'];
+            $fOrder->payment_id = $requestBody['payment_id'];
+            $fOrder->save();
+
             if ($this->context->cart->OrderExists() == false){
                 $total = $requestBody['amount'] / 100;
                 $this->module->validateOrder((int)$cartID, _PS_OS_PREPARATION_, $total, $this->module->displayName, null, ['transaction_id' => $requestBody['payment_id']]);
@@ -78,13 +84,11 @@ class FondyCallbackModuleFrontController extends ModuleFrontController
                 throw new Exception('Order declined');
             }
 
-            $fondy = new Fondy();
-            $settings = [
-                'merchant_id' => $fondy->getOption('merchant'),
-                'secret_key' => $fondy->getOption('secret_key')
-            ];
 
-            $isPaymentValid = FondyCls::isPaymentValid($settings, $requestBody);
+            FondyCls::setMerchantId(Configuration::get('FONDY_MERCHANT'));
+            FondyCls::setSecretKey(Configuration::get('FONDY_SECRET_KEY'));
+            $isPaymentValid = FondyCls::isPaymentValid($requestBody);
+
             if ($isPaymentValid !== true) {
                 throw new Exception($isPaymentValid);
             } else {
@@ -102,3 +106,5 @@ class FondyCallbackModuleFrontController extends ModuleFrontController
         }
     }
 }
+
+

@@ -9,7 +9,8 @@
  */
 
 require_once(dirname(__FILE__) . '../../../fondy.php');
-require_once(dirname(__FILE__) . '../../../fondy.cls.php');
+require_once(dirname(__FILE__) . '../../../classes/fondy.cls.php');
+require_once(dirname(__FILE__) . '../../../classes/FondyOrder.php');
 
 if (!defined('_PS_VERSION_')) {
     exit;
@@ -26,37 +27,39 @@ class FondyRedirectModuleFrontController extends ModuleFrontController
     {
         parent::initContent();
 
-        $cookie = $this->context->cookie;
-        $link = $this->context->link;
-
-        $language = Language::getIsoById((int)$cookie->id_lang);
-        $language = (!in_array($language, array('uk', 'en', 'ru', 'lv', 'fr'))) ? '' : $language;
-
-        $payCurrency = Context::getContext()->currency;
         $cart = $this->context->cart;
 
-        $fondy = $this->module;
-        $total = $cart->getOrderTotal();
+        try {
+            FondyCls::setMerchantId(Configuration::get('FONDY_MERCHANT'));
+            FondyCls::setSecretKey(Configuration::get('FONDY_SECRET_KEY'));
 
-        $fields = array(
-            'order_id' => $cart->id . FondyCls::ORDER_SEPARATOR . time(),
-            'merchant_id' => $fondy->getOption('merchant'),
-            'order_desc' => $this->l('Cart pay №') . $cart->id,
-            'amount' => round($total * 100),
-            'currency' => $payCurrency->iso_code,
-            'server_callback_url' => $link->getModuleLink('fondy', 'callback'),
-            'response_url' => $link->getModuleLink('fondy', 'result'),
-            'sender_email' => $this->context->customer->email
-        );
-        if ($language !== '') {
-            $fields['lang'] = Tools::strtolower($language);
+            $fields = [
+                'order_id' => $cart->id . FondyCls::ORDER_SEPARATOR . time(),
+                'order_desc' => $this->l('Cart pay №') . $cart->id,
+                'amount' => round($cart->getOrderTotal() * 100),
+                'currency' => $this->context->currency->iso_code,
+                'server_callback_url' => $this->context->link->getModuleLink('fondy', 'callback'),
+                'response_url' => $this->context->link->getModuleLink('fondy', 'result'),
+                'sender_email' => $this->context->customer->email,
+                'lang' => $this->context->language->iso_code,
+                'lifetime' => 604800,
+                'preauth' => Configuration::get('FONDY_PREAUTH') ? 'Y' : 'N',
+            ];
+
+            $checkoutUrl = FondyCls::getCheckoutUrl($fields);
+
+            $fOrder = new FondyOrder($cart->id);
+            $fOrder->id_cart = $cart->id;
+            $fOrder->order_id = $fields['order_id'];
+            $fOrder->preauth = $fields['preauth'];
+            $fOrder->checkout_url = $checkoutUrl;
+            $fOrder->save();
+        } catch (Exception $e){
+            PrestaShopLogger::addLog($e->getMessage(), 3,null, 'Cart', $cart->id, true);
+            $this->errors[] = $e->getMessage();
+            $this->redirectWithNotifications('index.php?controller=order');
         }
-        $fields['signature'] = FondyCls::getSignature($fields, $fondy->getOption('secret_key'));
-        $fields['fondy_url'] = FondyCls::URL;
 
-        $this->context->smarty->assign($fields);
-
-        $this->setTemplate('module:' . $this->module->name . '/views/templates/front/redirect.tpl');
+        Tools::redirect($checkoutUrl);
     }
 }
-
