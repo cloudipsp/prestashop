@@ -25,21 +25,17 @@ class FondyResultModuleFrontController extends ModuleFrontController
         if (Tools::getValue('order_status') == FondyCls::ORDER_DECLINED) {
             $this->errors[] = Tools::displayError('Order declined');
         }
-        if (Tools::getValue('order_status') == 'processing') {
+        if (Tools::getValue('order_status') == FondyCls::ORDER_PROCESSING) {
             $this->errors[] = Tools::displayError('Payment proccesing');
         }
-        if (Tools::getValue('order_status') == 'expired') {
+        if (Tools::getValue('order_status') == FondyCls::ORDER_EXPIRED) {
             $this->errors[] = Tools::displayError('Order expired');
         }
 
-        list($cartID,) = explode(FondyCls::ORDER_SEPARATOR, $_POST['order_id']);
-        $this->context->cart = new Cart((int) $cartID);
+        list($orderID,) = explode(FondyCls::ORDER_SEPARATOR, $_POST['order_id']);
+        $order = new Order((int)$orderID);
+        $this->context->cart = new Cart($order->id_cart);
         $cart = $this->context->cart;
-
-        if ($this->context->cart->OrderExists() == false){
-            $total = $cart->getOrderTotal();
-            $this->module->validateOrder((int)$cart->id, _PS_OS_PREPARATION_, $total, $this->module->displayName, null, ['transaction_id' => $_POST['payment_id']]);
-        }
 
         if ($cart->id_customer == 0 || $cart->id_address_delivery == 0 || $cart->id_address_invoice == 0
             || !$this->module->active) {
@@ -53,10 +49,10 @@ class FondyResultModuleFrontController extends ModuleFrontController
 
         if (empty($this->errors)) {
             Tools::redirect(
-                'index.php?controller=order-confirmation&id_cart=' . $this->context->cart->id .
-                '&id_module=' . $this->module->id .
-                '&id_order=' . $this->module->currentOrder .
-                '&key=' . $customer->secure_key
+                'index.php?controller=order-confirmation&id_cart=' . (int)$order->id_cart .
+                '&id_module=' . (int)$this->module->id .
+                '&id_order=' . (int)$order->id .
+                '&key=' . $order->secure_key
             );
         } else {
             $this->redirectWithNotifications('index.php?controller=order');

@@ -27,35 +27,35 @@ class FondyRedirectModuleFrontController extends ModuleFrontController
     {
         parent::initContent();
 
-        $cart = $this->context->cart;
-
         try {
-            FondyCls::setMerchantId(Configuration::get('FONDY_MERCHANT'));
-            FondyCls::setSecretKey(Configuration::get('FONDY_SECRET_KEY'));
+            $cart = $this->context->cart;
+            $orderTotal = $cart->getOrderTotal();
+            $this->module->validateOrder((int)$cart->id, _PS_OS_PREPARATION_, $orderTotal, $this->module->displayName);
 
             $fields = [
-                'order_id' => $cart->id . FondyCls::ORDER_SEPARATOR . time(),
-                'order_desc' => $this->l('Cart pay №') . $cart->id,
-                'amount' => round($cart->getOrderTotal() * 100),
+                'order_id' => $this->module->currentOrder. FondyCls::ORDER_SEPARATOR . time(),
+                'order_desc' => $this->l('Order pay №') . $this->module->currentOrder,
+                'amount' => round($orderTotal * 100),
                 'currency' => $this->context->currency->iso_code,
                 'server_callback_url' => $this->context->link->getModuleLink('fondy', 'callback'),
                 'response_url' => $this->context->link->getModuleLink('fondy', 'result'),
                 'sender_email' => $this->context->customer->email,
                 'lang' => $this->context->language->iso_code,
-                'lifetime' => 604800,
                 'preauth' => Configuration::get('FONDY_PREAUTH') ? 'Y' : 'N',
             ];
 
+            FondyCls::setMerchantId(Configuration::get('FONDY_MERCHANT'));
+            FondyCls::setSecretKey(Configuration::get('FONDY_SECRET_KEY'));
             $checkoutUrl = FondyCls::getCheckoutUrl($fields);
 
-            $fOrder = new FondyOrder($cart->id);
-            $fOrder->id_cart = $cart->id;
+            $fOrder = new FondyOrder($fields['order_id']);
             $fOrder->order_id = $fields['order_id'];
+            $fOrder->id_cart = $cart->id;
             $fOrder->preauth = $fields['preauth'];
             $fOrder->checkout_url = $checkoutUrl;
             $fOrder->save();
         } catch (Exception $e){
-            PrestaShopLogger::addLog($e->getMessage(), 3,null, 'Cart', $cart->id, true);
+            PrestaShopLogger::addLog($e->getMessage(), 3,null, Cart::class, $cart->id, true);
             $this->errors[] = $e->getMessage();
             $this->redirectWithNotifications('index.php?controller=order');
         }

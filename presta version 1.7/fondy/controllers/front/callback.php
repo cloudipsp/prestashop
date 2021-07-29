@@ -5,7 +5,7 @@
  * @author DM
  * @copyright  2014-2019 Fondy
  * @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
- * @version    1.2.0
+ * @version    1.0.0
  */
 
 require_once(dirname(__FILE__) . '../../../fondy.php');
@@ -25,6 +25,8 @@ class FondyCallbackModuleFrontController extends ModuleFrontController
     public $ssl = true;
 
     /**
+     * callback handler
+     *
      * @see FrontController::postProcess()
      */
     public function postProcess()
@@ -42,67 +44,75 @@ class FondyCallbackModuleFrontController extends ModuleFrontController
                 $requestBody[$key] = $val;
             }
         }
-        try {
-            list($cartID,) = explode(FondyCls::ORDER_SEPARATOR, $requestBody['order_id']);
-            $this->context->cart = new Cart((int) $cartID);
 
-            $fOrder = FondyOrder::getOrderById($requestBody['order_id']);
+        try {
+            list($orderID,) = explode(FondyCls::ORDER_SEPARATOR, $requestBody['order_id']);
+            $order = new Order((int)$orderID);
+            $this->context->cart = new Cart($order->id_cart);
+
+            FondyCls::setMerchantId(Configuration::get('FONDY_MERCHANT'));
+            FondyCls::setSecretKey(Configuration::get('FONDY_SECRET_KEY'));
+
+            if (($isRequestValid = FondyCls::validateRequest($requestBody)) !== true) {
+                throw new Exception($isRequestValid);
+            }
+
+            $fOrder = new FondyOrder($requestBody['order_id']);
+
+            // purchase and capture callback are identical (-_Q)
+            if ($fOrder->status == 'approved' && $fOrder->last_tran_type == 'capture')
+                exit('capture callback');
+
+            $fOrder->last_tran_type = $requestBody['tran_type'];
             $fOrder->status = $requestBody['order_status'];
             $fOrder->payment_id = $requestBody['payment_id'];
             $fOrder->save();
 
-            if ($this->context->cart->OrderExists() == false){
-                $total = $requestBody['amount'] / 100;
-                $this->module->validateOrder((int)$cartID, _PS_OS_PREPARATION_, $total, $this->module->displayName, null, ['transaction_id' => $requestBody['payment_id']]);
-            } else {
-                $this->module->currentOrder = Order::getIdByCartId($cartID);
-            }
-
-            $orderId = $this->module->currentOrder;
-            $order = new Order($orderId);
-
             if ((int)$order->getCurrentState() == (int)Configuration::get('PS_OS_PAYMENT')) {
-                PrestaShopLogger::addLog(
-                    sprintf(
-                        'Order id %s current state %s = expected state %s',
-                        $order->id,
-                        $order->getCurrentState(),
-                        1
-                    ),
-                    3
-                );
+                $message = sprintf('Order current state %s. Expected state - %s.', $order->getCurrentState(), _PS_OS_PREPARATION_);
+                PrestaShopLogger::addLog($message, 3, null, Order::class, $order->id, true);
                 throw new Exception('State is already Paid');
             }
 
-            if ($requestBody['order_status'] == FondyCls::ORDER_DECLINED or $requestBody['order_status'] == FondyCls::ORDER_EXPIRED) {
-                $history = new OrderHistory();
-                $history->id_order = $orderId;
-                $history->changeIdOrderState((int)Configuration::get('PS_OS_ERROR'), $orderId);
-                $history->addWithemail(true, array(
-                    'order_name' => $orderId
-                ));
-                throw new Exception('Order declined');
-            }
+            $history = new OrderHistory();
+            $history->id_order = $order->id;
 
-
-            FondyCls::setMerchantId(Configuration::get('FONDY_MERCHANT'));
-            FondyCls::setSecretKey(Configuration::get('FONDY_SECRET_KEY'));
-            $isPaymentValid = FondyCls::isPaymentValid($requestBody);
-
-            if ($isPaymentValid !== true) {
-                throw new Exception($isPaymentValid);
-            } else {
-                $history = new OrderHistory();
-                $history->id_order = $orderId;
-                $history->changeIdOrderState((int) Configuration::get('FONDY_SUCCESS_STATUS_ID'), $orderId);
-                $history->addWithemail(true, array(
-                    'order_name' => $orderId
-                ));
-
-                exit('OK');
+            switch ($requestBody['order_status']){
+                case FondyCls::ORDER_APPROVED:
+                    $history->changeIdOrderState((int)Configuration::get('FONDY_SUCCESS_STATUS_ID'), $order->id);
+                    $history->addWithemail(true, ['order_name' => $order->id]);
+                    $this->addOrderPaymentTransactionId($order, $requestBody['payment_id']);
+                    $responseMsg = 'OK';
+                    break;
+                case FondyCls::ORDER_EXPIRED:
+                case FondyCls::ORDER_DECLINED:
+                    $history->changeIdOrderState((int)Configuration::get('PS_OS_ERROR'), $order->id);
+                    $history->addWithemail(true, ['order_name' => $order->id]);
+                    $responseMsg = 'Order declined/expired';
+                    break;
+                default: $responseMsg = 'unhandled fondy order status';
             }
         } catch (Exception $e) {
             exit($e->getMessage());
+        }
+
+        exit($responseMsg);
+    }
+
+    /**
+     * try add transaction_id to order payment
+     *
+     * @param $order
+     * @param $transactionID
+     */
+    private function addOrderPaymentTransactionId($order, $transactionID)
+    {
+        $orderPayments = $order->getOrderPayments();
+
+        if ($orderPayments[0]->payment_method === $this->module->displayName){
+            $orderPayment = $orderPayments[0];
+            $orderPayment->transaction_id = $transactionID;
+            $orderPayment->save();
         }
     }
 }

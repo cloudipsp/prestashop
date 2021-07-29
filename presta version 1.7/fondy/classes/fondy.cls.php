@@ -5,7 +5,7 @@
  * @author DM
  * @copyright  2014-2019 Fondy
  * @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
- * @version    1.2.0
+ * @version    1.0.0
  */
 
 class FondyCls
@@ -13,6 +13,7 @@ class FondyCls
     const ORDER_APPROVED = 'approved';
     const ORDER_DECLINED = 'declined';
     const ORDER_EXPIRED = 'expired';
+    const ORDER_PROCESSING = 'processing';
 
     const ORDER_SEPARATOR = '#';
 
@@ -60,29 +61,18 @@ class FondyCls
         }
     }
 
-    public static function isPaymentValid($response)
+    public static function validateRequest($response)
     {
         if (self::$merchantId != $response['merchant_id']) {
             return 'An error has occurred during payment. Merchant data is incorrect.';
         }
 
-        if ($response['order_status'] == self::ORDER_DECLINED) {
-            return 'An error has occurred during payment. Order is declined.';
-        }
-
         $responseSignature = $response['signature'];
-        if (isset($response['response_signature_string'])) {
-            unset($response['response_signature_string']);
-        }
-        if (isset($response['signature'])) {
-            unset($response['signature']);
-        }
+        unset($response['response_signature_string']);
+        unset($response['signature']);
+
         if (self::getSignature($response, self::$secretKey) != $responseSignature) {
             return 'An error has occurred during payment. Signature is not valid.';
-        }
-
-        if ($response['order_status'] != self::ORDER_APPROVED) {
-            return false;
         }
 
         return true;

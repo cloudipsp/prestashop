@@ -5,7 +5,7 @@
  * @author DM && DB
  * @copyright  2014-2021 Fondy
  * @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
- * @version    1.2.0
+ * @version    1.2.1
  */
 require_once(dirname(__FILE__) . '/classes/FondyOrder.php');
 require_once(dirname(__FILE__) . '/classes/fondy.cls.php');
@@ -36,7 +36,7 @@ class Fondy extends PaymentModule
     {
         $this->name = 'fondy';
         $this->tab = 'payments_gateways';
-        $this->version = '1.2.0';
+        $this->version = '1.2.1';
         $this->author = 'Fondy';
         $this->bootstrap = true;
         $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
@@ -81,13 +81,14 @@ class Fondy extends PaymentModule
         $return &= Db::getInstance()->execute(
             '
                 CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'fondy_orders` (
+				`order_id` varchar(255) NOT NULL,
 				`id_cart` INT(10) UNSIGNED NOT NULL,
-				`order_id` varchar(255) DEFAULT NULL,
 				`status` varchar(15) DEFAULT NULL,
 				`payment_id` int(10) DEFAULT NULL,
+				`last_tran_type` varchar(255) DEFAULT NULL,
 				`preauth` char(1) DEFAULT NULL,
 				`checkout_url` varchar(255) DEFAULT NULL,
-                PRIMARY KEY (`id_cart`)
+                PRIMARY KEY (`order_id`)
             ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8 ;'
         );
 
@@ -444,8 +445,7 @@ class Fondy extends PaymentModule
      */
     public function hookActionOrderStatusUpdate($params)
     {
-        $cart_id = Cart::getCartIdByOrderId($params['id_order']);
-        $fOrder = new FondyOrder($cart_id);
+        $fOrder = FondyOrder::getByPSOrderId((int)$params['id_order']);;
 
         if (!$fOrder->order_id || !($params['newOrderStatus'] instanceof OrderState) || $fOrder->preauth != 'Y') {
             return;
@@ -468,11 +468,15 @@ class Fondy extends PaymentModule
 
             if (in_array($params['newOrderStatus']->id, $captureOrderStatusIDs)) {
                 FondyCls::capture($requestFields);
+                $fOrder->last_tran_type = 'capture';
+                $fOrder->save();
                 PrestaShopLogger::addLog('Fondy: capture successful!', 1, null, 'Order', $params['id_order'], true);
             }
 
             if (in_array($params['newOrderStatus']->id, $refundOrderStatusIDs)) {
                 FondyCls::reverse($requestFields);
+                $fOrder->last_tran_type = 'reverse';
+                $fOrder->save();
                 PrestaShopLogger::addLog('Fondy: refund successful!', 1, null, 'Order', $params['id_order'], true);
             }
         } catch (Exception $e) {
@@ -491,7 +495,7 @@ class Fondy extends PaymentModule
     public function hookDisplayAdminOrderTabLink($params)
     {
         $order = new Order($params['id_order']);
-        $fOrder = new FondyOrder($order->id_cart);
+        $fOrder = FondyOrder::getByPSOrderId($order->id);
 
         if ($order->module != $this->name || !$fOrder->order_id) {
             return '';
@@ -511,7 +515,7 @@ class Fondy extends PaymentModule
     public function hookDisplayAdminOrderTabContent($params)
     {
         $order = new Order($params['id_order']);
-        $fOrder = new FondyOrder($order->id_cart);
+        $fOrder = FondyOrder::getByPSOrderId($order->id);
 
         if ($order->module != $this->name || !$fOrder->order_id) {
             return '';
