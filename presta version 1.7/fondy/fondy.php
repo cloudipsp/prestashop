@@ -61,7 +61,8 @@ class Fondy extends PaymentModule
             && $this->registerHook('displayAdminOrderTabOrder')
             && $this->registerHook('displayAdminOrderContentOrder')
             && $this->registerHook('displayAdminOrderTabLink')
-            && $this->registerHook('displayAdminOrderTabContent');
+            && $this->registerHook('displayAdminOrderTabContent')
+            && $this->registerOrderStates();
     }
 
     public function uninstall()
@@ -98,6 +99,49 @@ class Fondy extends PaymentModule
     public function uninstallDB()
     {
         return Db::getInstance()->execute('DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'fondy_orders`');
+    }
+
+    /**
+     * add fondy custom order status
+     *
+     * @return bool
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     */
+    public function registerOrderStates()
+    {
+        if (!Configuration::get('FONDY_OS_PROCESSING')
+            || !Validate::isLoadedObject(new OrderState(Configuration::get('FONDY_OS_PROCESSING')))) {
+            $order_state = new OrderState();
+            $order_state->name = [];
+            foreach (Language::getLanguages() as $language) {
+                switch (Tools::strtolower($language['iso_code'])) {
+                    case 'ru':
+                        $order_state->name[$language['id_lang']] = pSQL('В обработке / Ожидание оплаты');
+                        break;
+                    case 'uk':
+                        $order_state->name[$language['id_lang']] = pSQL('В обробці / Очікування оплати');
+                        break;
+
+                    default:
+                        $order_state->name[$language['id_lang']] = pSQL('Processing / Awaiting payment');
+                        break;
+                }
+            }
+            $order_state->invoice = true;
+            $order_state->send_email = false;
+            $order_state->logable = true;
+            $order_state->color = '#ff8c00';
+            if ($order_state->add()) {
+                $source = _PS_MODULE_DIR_. $this->name . '/views/img/order_state_processing.gif';
+                $destination = _PS_ROOT_DIR_.'/img/os/'.(int) $order_state->id.'.gif';
+                copy($source, $destination);
+            }
+
+            Configuration::updateValue('FONDY_OS_PROCESSING', $order_state->id);
+        }
+
+        return true;
     }
 
     /**
@@ -263,7 +307,6 @@ class Fondy extends PaymentModule
                         'label' => $this->l('Order states for decline customer payment'),
                         'multiple' => true,
                         'class' => 'chosen',
-                        'placeholder' => 'OLOLE',
                         'options' => [
                             'query' => $orderStates,
                             'id' => 'id_order_state',

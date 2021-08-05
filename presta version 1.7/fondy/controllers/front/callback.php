@@ -68,8 +68,8 @@ class FondyCallbackModuleFrontController extends ModuleFrontController
             $fOrder->payment_id = $requestBody['payment_id'];
             $fOrder->save();
 
-            if ((int)$order->getCurrentState() == (int)Configuration::get('PS_OS_PAYMENT')) {
-                $message = sprintf('Order current state %s. Expected state - %s.', $order->getCurrentState(), _PS_OS_PREPARATION_);
+            if ((int)$order->getCurrentState() == (int)Configuration::get('FONDY_SUCCESS_STATUS_ID')) {
+                $message = sprintf('Order current state %s. Expected state - %s.', $order->getCurrentState(), Configuration::get('FONDY_OS_PROCESSING'));
                 PrestaShopLogger::addLog($message, 3, null, Order::class, $order->id, true);
                 throw new Exception('State is already Paid');
             }

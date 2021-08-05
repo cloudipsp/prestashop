@@ -39,7 +39,8 @@ function upgrade_module_1_2_0($module)
         && $module->registerHook('displayAdminOrderTabOrder')
         && $module->registerHook('displayAdminOrderContentOrder')
         && $module->registerHook('displayAdminOrderTabLink')
-        && $module->registerHook('displayAdminOrderTabContent');
+        && $module->registerHook('displayAdminOrderTabContent')
+        && $module->registerOrderStates();;
 
     return $result;
 }

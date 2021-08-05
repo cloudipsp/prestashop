@@ -30,7 +30,12 @@ class FondyRedirectModuleFrontController extends ModuleFrontController
         try {
             $cart = $this->context->cart;
             $orderTotal = $cart->getOrderTotal();
-            $this->module->validateOrder((int)$cart->id, _PS_OS_PREPARATION_, $orderTotal, $this->module->displayName);
+            $this->module->validateOrder(
+                (int)$cart->id,
+                Configuration::get('FONDY_OS_PROCESSING'),
+                $orderTotal,
+                $this->module->displayName
+            );
 
             $fields = [
                 'order_id' => $this->module->currentOrder. FondyCls::ORDER_SEPARATOR . time(),
