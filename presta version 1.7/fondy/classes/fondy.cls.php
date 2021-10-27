@@ -14,6 +14,7 @@ class FondyCls
     const ORDER_DECLINED = 'declined';
     const ORDER_EXPIRED = 'expired';
     const ORDER_PROCESSING = 'processing';
+    const ORDER_REVERSED = 'reversed';
 
     const ORDER_SEPARATOR = '#';
 

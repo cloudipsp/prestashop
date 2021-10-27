@@ -5,8 +5,9 @@
  */
 class FondyOrder extends ObjectModel
 {
-    public $id_cart;
     public $order_id;
+    public $id_cart;
+    public $total;
     public $status;
     public $payment_id;
     public $last_tran_type;
@@ -19,6 +20,7 @@ class FondyOrder extends ObjectModel
         'fields' => array(
             'order_id' => array('type' => self::TYPE_STRING, 'validate' => 'isString'),
             'id_cart' => array('type' => self::TYPE_INT, 'validate' => 'isUnsignedId'),
+            'total' => array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt'),
             'status' => array('type' => self::TYPE_STRING, 'validate' => 'isString'),
             'payment_id' => array('type' => self::TYPE_INT, 'validate' => 'isUnsignedInt'),
             'last_tran_type' => array('type' => self::TYPE_STRING, 'validate' => 'isString'),

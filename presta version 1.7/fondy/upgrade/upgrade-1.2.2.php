@@ -1,6 +1,6 @@
 <?php
 /**
- * 2007-2020 PrestaShop and Contributors
+ * 2007-2021 PrestaShop and Contributors
  *
  * NOTICE OF LICENSE
  *
@@ -13,10 +13,11 @@
  * to license@prestashop.com so we can send you a copy immediately.
  *
  * @author    PrestaShop SA <contact@prestashop.com>
- * @copyright 2007-2020 PrestaShop SA and Contributors
+ * @copyright 2007-2021 PrestaShop SA and Contributors
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License 3.0 (AFL-3.0)
  * International Registered Trademark & Property of PrestaShop SA
  */
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -26,21 +27,9 @@ if (!defined('_PS_VERSION_')) {
  *
  * @return bool
  */
-function upgrade_module_1_2_0($module)
+function upgrade_module_1_2_2($module)
 {
-    $result = true;
+    $sql = 'ALTER TABLE ' . _DB_PREFIX_ . 'fondy_orders ADD total INT(11) AFTER id_cart';
 
-    Configuration::updateValue('FONDY_CONFIRM_PAYMENT_STATES_CONF', '{}');
-    Configuration::updateValue('FONDY_DECLINE_PAYMENT_STATES_CONF', '{}');
-    Configuration::updateValue('FONDY_PREAUTH', 0);
-
-    $result &= $module->installDB()
-        && $module->registerHook('actionOrderStatusUpdate')
-        && $module->registerHook('displayAdminOrderTabOrder')
-        && $module->registerHook('displayAdminOrderContentOrder')
-        && $module->registerHook('displayAdminOrderTabLink')
-        && $module->registerHook('displayAdminOrderTabContent')
-        && $module->registerOrderStates();
-
-    return $result;
+    return Db::getInstance()->execute($sql) && $module->registerOrderStates();
 }

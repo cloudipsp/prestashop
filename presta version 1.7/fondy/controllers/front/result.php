@@ -23,13 +23,13 @@ class FondyResultModuleFrontController extends ModuleFrontController
     public function postProcess()
     {
         if (Tools::getValue('order_status') == FondyCls::ORDER_DECLINED) {
-            $this->errors[] = Tools::displayError('Order declined');
+            $this->errors[] = Tools::displayError('Order declined!');
         }
         if (Tools::getValue('order_status') == FondyCls::ORDER_PROCESSING) {
-            $this->errors[] = Tools::displayError('Payment proccesing');
+            $this->errors[] = Tools::displayError('Payment proccesing!');
         }
         if (Tools::getValue('order_status') == FondyCls::ORDER_EXPIRED) {
-            $this->errors[] = Tools::displayError('Order expired');
+            $this->errors[] = Tools::displayError('Order expired!');
         }
 
         list($orderID,) = explode(FondyCls::ORDER_SEPARATOR, $_POST['order_id']);

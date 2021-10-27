@@ -2,7 +2,7 @@
 <module>
     <name>fondy</name>
     <displayName><![CDATA[Платежи Fondy]]></displayName>
-    <version><![CDATA[1.2.1]]></version>
+    <version><![CDATA[1.2.2]]></version>
     <description><![CDATA[Fondy - это платежная платформа, основной функцией которой является предоставление интернет-эквайринга. Платежный шлюз поддерживает EUR, USD, PLN, GBP, UAH, RUB и +100 других валют.]]></description>
     <author><![CDATA[Fondy]]></author>
     <tab><![CDATA[payments_gateways]]></tab>

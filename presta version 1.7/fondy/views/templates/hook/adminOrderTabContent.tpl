@@ -1,3 +1,4 @@
+<!-- Tab fondy -->
 <div class="tab-pane" id="fondy">
     <p>
         <label for="fondy_checkout_url" class="form-control-label">

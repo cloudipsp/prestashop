@@ -5,7 +5,7 @@
  * @author DM && DB
  * @copyright  2014-2021 Fondy
  * @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
- * @version    1.2.1
+ * @version    1.2.2
  */
 require_once(dirname(__FILE__) . '/classes/FondyOrder.php');
 require_once(dirname(__FILE__) . '/classes/fondy.cls.php');
@@ -36,7 +36,7 @@ class Fondy extends PaymentModule
     {
         $this->name = 'fondy';
         $this->tab = 'payments_gateways';
-        $this->version = '1.2.1';
+        $this->version = '1.2.2';
         $this->author = 'Fondy';
         $this->bootstrap = true;
         $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
@@ -84,6 +84,7 @@ class Fondy extends PaymentModule
                 CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'fondy_orders` (
 				`order_id` varchar(255) NOT NULL,
 				`id_cart` INT(10) UNSIGNED NOT NULL,
+				`total` INT(11) DEFAULT NULL,
 				`status` varchar(15) DEFAULT NULL,
 				`payment_id` int(10) DEFAULT NULL,
 				`last_tran_type` varchar(255) DEFAULT NULL,
@@ -110,38 +111,192 @@ class Fondy extends PaymentModule
      */
     public function registerOrderStates()
     {
+        // при редиректе на страницу оплаты
         if (!Configuration::get('FONDY_OS_PROCESSING')
             || !Validate::isLoadedObject(new OrderState(Configuration::get('FONDY_OS_PROCESSING')))) {
             $order_state = new OrderState();
-            $order_state->name = [];
-            foreach (Language::getLanguages() as $language) {
-                switch (Tools::strtolower($language['iso_code'])) {
-                    case 'ru':
-                        $order_state->name[$language['id_lang']] = pSQL('В обработке / Ожидание оплаты');
-                        break;
-                    case 'uk':
-                        $order_state->name[$language['id_lang']] = pSQL('В обробці / Очікування оплати');
-                        break;
-
-                    default:
-                        $order_state->name[$language['id_lang']] = pSQL('Processing / Awaiting payment');
-                        break;
-                }
-            }
-            $order_state->invoice = true;
-            $order_state->send_email = false;
+            $order_state->name = $this->getOsLocalizedNames([
+                'en' => 'Processing / Awaiting payment',
+                'uk' => 'В обробці / Очікування оплати',
+                'ru' => 'В обработке / Ожидание оплаты',
+            ]);
             $order_state->logable = true;
-            $order_state->color = '#ff8c00';
-            if ($order_state->add()) {
-                $source = _PS_MODULE_DIR_. $this->name . '/views/img/order_state_processing.gif';
-                $destination = _PS_ROOT_DIR_.'/img/os/'.(int) $order_state->id.'.gif';
-                copy($source, $destination);
+            $order_state->module_name = $this->name;
+            $order_state->color = '#ff6d01';
+            if ($order_state->add()){
+                $this->addOsImage('processing', $order_state->id);
+                Configuration::updateValue('FONDY_OS_PROCESSING', $order_state->id);
             }
+        }
 
-            Configuration::updateValue('FONDY_OS_PROCESSING', $order_state->id);
+        // callback после capture на всю сумму при помощи смены статуса заказа в ПС
+        if (!Configuration::get('FONDY_OS_CAPTURED')
+            || !Validate::isLoadedObject(new OrderState(Configuration::get('FONDY_OS_CAPTURED')))) {
+            $order_state = new OrderState();
+            $order_state->name = $this->getOsLocalizedNames([
+                'en' => 'Sent / Issued / FULL PAYMENT',
+                'uk' => 'Відправлено / Видано / ПОВНА ОПЛАТА',
+            ]);
+            $order_state->logable = true;
+            $order_state->invoice = true;
+            $order_state->shipped = true;
+            $order_state->paid = true;
+            $order_state->delivery = true;
+            $order_state->module_name = $this->name;
+            $order_state->color = '#38761c';
+            if ($order_state->add()){
+                $this->addOsImage('captured', $order_state->id);
+                Configuration::updateValue('FONDY_OS_CAPTURED', $order_state->id);
+            }
+        }
+
+        // callback после capture на всю сумму при помощи смены статуса заказа в ПС если сумма заказа поменялась
+        if (!Configuration::get('FONDY_OS_CAPTURED_PART')
+            || !Validate::isLoadedObject(new OrderState(Configuration::get('FONDY_OS_CAPTURED_PART')))) {
+            $order_state = new OrderState();
+            $order_state->name = $this->getOsLocalizedNames([
+                'en' => 'Shipment is incomplete / FULL PAYMENT',
+                'uk' => 'Відвантаження неповне / ПОВНА ОПЛАТА',
+            ]);
+            $order_state->logable = true;
+            $order_state->shipped = true;
+            $order_state->paid = true;
+            $order_state->delivery = true;
+            $order_state->module_name = $this->name;
+            $order_state->color = '#c9daf8';
+            if ($order_state->add()){
+                $this->addOsImage('captured_part', $order_state->id);
+                Configuration::updateValue('FONDY_OS_CAPTURED_PART', $order_state->id);
+            }
+        }
+
+        // callback после capture c МП
+        if (!Configuration::get('FONDY_OS_CAPTURED_MP')
+            || !Validate::isLoadedObject(new OrderState(Configuration::get('FONDY_OS_CAPTURED_MP')))) {
+            $order_state = new OrderState();
+            $order_state->name = $this->getOsLocalizedNames([
+                'en' => 'Payment of the order FULL (manual)',
+                'uk' => 'Оплата замовлення повна (manual)',
+            ]);
+            $order_state->logable = true;
+            $order_state->invoice = true;
+            $order_state->hidden = true;
+            $order_state->paid = true;
+            $order_state->module_name = $this->name;
+            $order_state->color = '#00ff01';
+            if ($order_state->add()){
+                $this->addOsImage('captured_mp', $order_state->id);
+                Configuration::updateValue('FONDY_OS_CAPTURED_MP', $order_state->id);
+            }
+        }
+
+        // callback после частичной capture c МП
+        if (!Configuration::get('FONDY_OS_CAPTURED_PART_MP')
+            || !Validate::isLoadedObject(new OrderState(Configuration::get('FONDY_OS_CAPTURED_PART_MP')))) {
+            $order_state = new OrderState();
+            $order_state->name = $this->getOsLocalizedNames([
+                'uk' => 'Оплата замовлення неповна (manual)',
+                'en' => 'Payment of the order is incomplete (manual)'
+            ]);
+            $order_state->logable = true;
+            $order_state->hidden = true;
+            $order_state->shipped = true;
+            $order_state->paid = true;
+            $order_state->delivery = true;
+            $order_state->module_name = $this->name;
+            $order_state->color = '#fbbc04';
+            if ($order_state->add()){
+                $this->addOsImage('captured_part_mp', $order_state->id);
+                Configuration::updateValue('FONDY_OS_CAPTURED_PART_MP', $order_state->id);
+            }
+        }
+
+        // callback о полном reverse с PS
+        if (!Configuration::get('FONDY_OS_REVERSED')
+            || !Validate::isLoadedObject(new OrderState(Configuration::get('FONDY_OS_REVERSED')))) {
+            $order_state = new OrderState();
+            $order_state->name = $this->getOsLocalizedNames([
+                'en' => 'Full refund',
+                'uk' => 'Повне повернення грошей',
+            ]);
+            $order_state->logable = true;
+            $order_state->invoice = true;
+            $order_state->shipped = true;
+            $order_state->paid = true;
+            $order_state->delivery = true;
+            $order_state->module_name = $this->name;
+            $order_state->color = '#dc143c';
+            if ($order_state->add()){
+                $this->addOsImage('reversed', $order_state->id);
+                Configuration::updateValue('FONDY_OS_REVERSED', $order_state->id);
+            }
+        }
+
+        // callback о полном reverse с МП
+        if (!Configuration::get('FONDY_OS_REVERSED_MP')
+            || !Validate::isLoadedObject(new OrderState(Configuration::get('FONDY_OS_REVERSED_MP')))) {
+            $order_state = new OrderState();
+            $order_state->name = $this->getOsLocalizedNames([
+                'en' => 'Full refund (manual)',
+                'uk' => 'Повне повернення грошей (manual)',
+            ]);
+            $order_state->logable = true;
+            $order_state->invoice = true;
+            $order_state->hidden = true;
+            $order_state->module_name = $this->name;
+            $order_state->color = '#9900ff';
+            if ($order_state->add()){
+                $this->addOsImage('reversed_mp', $order_state->id);
+                Configuration::updateValue('FONDY_OS_REVERSED_MP', $order_state->id);
+            }
+        }
+
+        // callback о частичном reverse с МП
+        // если сделать частичный capture c МП, а за тем частичный\полный reverse - то тоже получим этот статус
+        if (!Configuration::get('FONDY_OS_REVERSED_PART_MP')
+            || !Validate::isLoadedObject(new OrderState(Configuration::get('FONDY_OS_REVERSED_PART_MP')))) {
+            $order_state = new OrderState();
+            $order_state->name = $this->getOsLocalizedNames([
+                'en' => 'Partial refund (manual)',
+                'uk' => 'Часткове повернення грошей (manual)',
+            ]);
+            $order_state->logable = true;
+            $order_state->invoice = true;
+            $order_state->hidden = true;
+            $order_state->module_name = $this->name;
+            $order_state->color = '#a64d79';
+            if ($order_state->add()){
+                $this->addOsImage('reversed_part_mp', $order_state->id);
+                Configuration::updateValue('FONDY_OS_REVERSED_PART_MP', $order_state->id);
+            }
         }
 
         return true;
+    }
+
+    /**
+     * @param $stateLang
+     * @return array
+     */
+    public function getOsLocalizedNames($stateLang)
+    {
+        $osName = [];
+
+        foreach (Language::getLanguages() as $language) {
+            $langIsoCode = strtolower($language['iso_code']);
+            $osName[$language['id_lang']] = array_key_exists($langIsoCode, $stateLang) ?
+                $stateLang[$langIsoCode] :
+                $stateLang['en'];
+        }
+
+        return $osName;
+    }
+
+    public function addOsImage($fileName, $stateID)
+    {
+        $source = _PS_MODULE_DIR_ . $this->name . "/views/img/order_states/$fileName.gif";
+        $destination = _PS_ROOT_DIR_ . '/img/os/' . (int)$stateID . '.gif';
+        copy($source, $destination);
     }
 
     /**
@@ -153,7 +308,7 @@ class Fondy extends PaymentModule
          * If values have been submitted in the form, process.
          */
         if (((bool)Tools::isSubmit('submitFondyModule')) == true) {
-            $this->postValidation();
+            $this->_postValidation();
             if (!sizeof($this->_postErrors)) {
                 $this->_postProcess();
             } else {
@@ -163,7 +318,7 @@ class Fondy extends PaymentModule
             }
         }
 
-        $this->_html .= $this->renderForm();
+        $this->_html .= $this->_renderForm();
 
         return $this->_html;
     }
@@ -171,7 +326,7 @@ class Fondy extends PaymentModule
     /**
      * Create the form that will be displayed in the configuration of your module.
      */
-    protected function renderForm()
+    private function _renderForm()
     {
         $helper = new HelperForm();
 
@@ -188,7 +343,7 @@ class Fondy extends PaymentModule
         $helper->token = Tools::getAdminTokenLite('AdminModules');
 
         $helper->tpl_vars = array(
-            'fields_value' => $this->getConfigFormValues(), /* Add values for your inputs */
+            'fields_value' => $this->_getConfigFormValues(), /* Add values for your inputs */
             'languages' => $this->context->controller->getLanguages(),
             'id_language' => $this->context->language->id,
         );
@@ -202,7 +357,7 @@ class Fondy extends PaymentModule
      *
      * @return array[]
      */
-    protected function _getConfigMerchantForm()
+    private function _getConfigMerchantForm()
     {
         return [
             'form' => [
@@ -243,7 +398,7 @@ class Fondy extends PaymentModule
      *
      * @return array[]
      */
-    protected function _getConfigStatusForm()
+    private function _getConfigStatusForm()
     {
         $orderStates = OrderState::getOrderStates($this->context->language->id);
 
@@ -325,7 +480,7 @@ class Fondy extends PaymentModule
      *
      * @return array[]
      */
-    protected function _getConfigAdditionalForm()
+    private function _getConfigAdditionalForm()
     {
         return [
             'form' => [
@@ -366,7 +521,7 @@ class Fondy extends PaymentModule
     /**
      * Set values for the inputs.
      */
-    protected function getConfigFormValues()
+    private function _getConfigFormValues()
     {
         $configs = [];
 
@@ -386,7 +541,7 @@ class Fondy extends PaymentModule
     /**
      * Save form data.
      */
-    protected function _postProcess()
+    private function _postProcess()
     {
         foreach ($this->configsList as $key) {
             $value = Tools::getValue($key);
@@ -399,7 +554,7 @@ class Fondy extends PaymentModule
     /**
      * save setting form validation
      */
-    private function postValidation()
+    private function _postValidation()
     {
         if (Tools::isSubmit('submitFondyModule')) {
             $merchant_id = Tools::getValue('FONDY_MERCHANT');
@@ -488,9 +643,9 @@ class Fondy extends PaymentModule
      */
     public function hookActionOrderStatusUpdate($params)
     {
-        $fOrder = FondyOrder::getByPSOrderId((int)$params['id_order']);;
+        $fOrder = FondyOrder::getByPSOrderId((int)$params['id_order']);
 
-        if (!$fOrder->order_id || !($params['newOrderStatus'] instanceof OrderState) || $fOrder->preauth != 'Y') {
+        if (!$fOrder->order_id || !($params['newOrderStatus'] instanceof OrderState)) {
             return;
         }
 
@@ -499,31 +654,46 @@ class Fondy extends PaymentModule
 
         try {
             $order = new Order($params['id_order']);
+            $orderTotal = (int)round($order->getTotalPaid() * 100);
 
             $requestFields = [
                 'order_id' => $fOrder->order_id,
-                'amount' => (int)round($order->getTotalPaid() * 100),
+                'amount' => $fOrder->total,
                 'currency' => (new Currency($order->id_currency))->iso_code,
             ];
 
             FondyCls::setMerchantId(Configuration::get('FONDY_MERCHANT'));
             FondyCls::setSecretKey(Configuration::get('FONDY_SECRET_KEY'));
 
-            if (in_array($params['newOrderStatus']->id, $captureOrderStatusIDs)) {
+            // capture
+            if (in_array($params['newOrderStatus']->id, $captureOrderStatusIDs) && $fOrder->preauth == 'Y') {
                 FondyCls::capture($requestFields);
                 $fOrder->last_tran_type = 'capture';
                 $fOrder->save();
                 PrestaShopLogger::addLog('Fondy: capture successful!', 1, null, 'Order', $params['id_order'], true);
             }
 
+            // reverse
             if (in_array($params['newOrderStatus']->id, $refundOrderStatusIDs)) {
+                if ($orderTotal != $fOrder->total) { // temp solution
+                    PrestaShopLogger::addLog(
+                        sprintf('Fondy: order not reversed! Reason: order amount has been changed (expected: %s).', $fOrder->total / 100),
+                        2,
+                        null,
+                        'Order',
+                        $params['id_order'],
+                        true
+                    );
+                    return;
+                }
+
                 FondyCls::reverse($requestFields);
                 $fOrder->last_tran_type = 'reverse';
                 $fOrder->save();
                 PrestaShopLogger::addLog('Fondy: refund successful!', 1, null, 'Order', $params['id_order'], true);
             }
         } catch (Exception $e) {
-            PrestaShopLogger::addLog($e->getMessage(), 2, null, 'Order', $params['id_order'], true);
+            PrestaShopLogger::addLog($e->getMessage(), 3, null, 'Order', $params['id_order'], true);
         }
     }
 
